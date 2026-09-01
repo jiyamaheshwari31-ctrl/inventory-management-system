@@ -24,7 +24,7 @@ let currentSaleItems = [];
 
 // ---------- Dashboard summary ----------
 async function loadSummary() {
-  const data = await apiRequest("/dashboard/summary");
+  const data = await apiRequest("/api/dashboard/summary");
   document.getElementById("summary-cards").innerHTML = `
     <div class="card"><h3>Total Products</h3><p>${data.total_products}</p></div>
     <div class="card"><h3>Total Sales</h3><p>${data.total_sales}</p></div>
@@ -42,7 +42,7 @@ async function loadSummary() {
 
 // ---------- Suppliers ----------
 async function loadSuppliers() {
-  suppliersCache = await apiRequest("/suppliers");
+  suppliersCache = await apiRequest("/api/suppliers");
   const tbody = document.querySelector("#suppliers-table tbody");
   tbody.innerHTML = suppliersCache.map((s) => `
     <tr>
@@ -89,7 +89,7 @@ window.deleteSupplier = async (id) => {
 
 // ---------- Products ----------
 async function loadProducts() {
-  productsCache = await apiRequest("/products");
+  productsCache = await apiRequest("/api/products");
   const tbody = document.querySelector("#products-table tbody");
   tbody.innerHTML = productsCache.map((p) => `
     <tr style="${p.low_stock ? 'background:#fff7ed' : ''}">
@@ -171,7 +171,7 @@ document.getElementById("submit-sale-btn").addEventListener("click", async () =>
 });
 
 async function loadSales() {
-  const sales = await apiRequest("/sales");
+  const sales = await apiRequest("/api/sales");
   document.querySelector("#sales-table tbody").innerHTML = sales.map((s) => `
     <tr>
       <td>${s.sale_id}</td>
