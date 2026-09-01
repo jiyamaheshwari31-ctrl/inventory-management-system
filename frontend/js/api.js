@@ -1,4 +1,4 @@
-const API_BASE = "https://inventory-management-system-c5tr.onrender.com/";
+const API_BASE = "https://inventory-management-system-c5tr.onrender.com";
 
 function getToken() {
   return localStorage.getItem("token");
