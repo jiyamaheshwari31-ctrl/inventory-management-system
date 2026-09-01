@@ -1,6 +1,4 @@
-// Change this to your deployed backend URL once deployed, e.g.
-// const API_BASE = "https://your-backend.onrender.com/api";
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "https://inventory-management-system-c5tr.onrender.com/";
 
 function getToken() {
   return localStorage.getItem("token");
