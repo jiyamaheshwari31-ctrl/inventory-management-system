@@ -66,8 +66,8 @@ document.getElementById("supplier-form").addEventListener("submit", async (e) =>
     phone: document.getElementById("s-phone").value,
     email: document.getElementById("s-email").value,
   };
-  if (id) await apiRequest(`/suppliers/${id}`, "PUT", payload);
-  else await apiRequest("/suppliers", "POST", payload);
+  if (id) await apiRequest(`/api/suppliers/${id}`, "PUT", payload);
+  else await apiRequest("/api/suppliers", "POST", payload);
   e.target.reset();
   document.getElementById("supplier-id").value = "";
   await loadSuppliers();
@@ -83,7 +83,7 @@ window.editSupplier = (id) => {
 
 window.deleteSupplier = async (id) => {
   if (!confirm("Delete this supplier?")) return;
-  await apiRequest(`/suppliers/${id}`, "DELETE");
+  await apiRequest(`/api/suppliers/${id}`, "DELETE");
   await loadSuppliers();
 };
 
@@ -116,8 +116,8 @@ document.getElementById("product-form").addEventListener("submit", async (e) => 
     quantity: parseInt(document.getElementById("p-quantity").value, 10),
     supplier_id: document.getElementById("p-supplier").value || null,
   };
-  if (id) await apiRequest(`/products/${id}`, "PUT", payload);
-  else await apiRequest("/products", "POST", payload);
+  if (id) await apiRequest(`/api/products/${id}`, "PUT", payload);
+  else await apiRequest("/api/products", "POST", payload);
   e.target.reset();
   document.getElementById("product-id").value = "";
   await Promise.all([loadProducts(), loadSummary()]);
@@ -135,7 +135,7 @@ window.editProduct = (id) => {
 
 window.deleteProduct = async (id) => {
   if (!confirm("Delete this product?")) return;
-  await apiRequest(`/products/${id}`, "DELETE");
+  await apiRequest(`/api/products/${id}`, "DELETE");
   await Promise.all([loadProducts(), loadSummary()]);
 };
 
@@ -162,7 +162,7 @@ window.removeSaleItem = (idx) => {
 
 document.getElementById("submit-sale-btn").addEventListener("click", async () => {
   if (!currentSaleItems.length) return alert("Add at least one item");
-  await apiRequest("/sales", "POST", {
+  await apiRequest("/api/sales", "POST", {
     items: currentSaleItems.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
   });
   currentSaleItems = [];
