@@ -6,7 +6,7 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
   errorEl.textContent = "";
 
   try {
-    const data = await apiRequest("/auth/login", "POST", { email, password }, false);
+    const data = await apiRequest("/api/auth/login", "POST", { email, password }, false);
     localStorage.setItem("token", data.access_token);
     localStorage.setItem("user", JSON.stringify(data.user));
     window.location.href = "dashboard.html";
