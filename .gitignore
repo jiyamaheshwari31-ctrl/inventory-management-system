@@ -1,6 +1,24 @@
-backend/venv/
-backend/.env
-backend/local_dev.db
+# Environment variables
+.env
+
+# Python virtual environment
+venv/
+.venv/
+
+# Python cache
 __pycache__/
 *.pyc
+
+# Local SQLite database
+*.db
+
+# Flask instance data
+instance/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
