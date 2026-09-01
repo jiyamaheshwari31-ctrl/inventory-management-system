@@ -7,6 +7,7 @@ auto-deduct stock, and a low-stock alert dashboard.
 Tested end-to-end locally before you got this: login, supplier CRUD, product CRUD, sale
 creation with stock deduction, and dashboard summary all work.
 
+Link https://inventorymgtsys.netlify.app/
 ---
 
 ## 1. Project structure
