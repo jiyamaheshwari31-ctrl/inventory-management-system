@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Dashboard — Inventory System</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="topnav">
+    <span class="brand">Inventory & Sales</span>
+    <span id="welcome"></span>
+    <button id="logout-btn">Logout</button>
+  </nav>
+
+  <main class="container">
+    <section class="summary-cards" id="summary-cards"></section>
+
+    <section id="low-stock-alert" class="alert-box hidden"></section>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="products">Products</button>
+      <button class="tab-btn" data-tab="suppliers">Suppliers</button>
+      <button class="tab-btn" data-tab="sales">Sales</button>
+    </div>
+
+    <!-- PRODUCTS -->
+    <section id="tab-products" class="tab-content">
+      <h2>Products</h2>
+      <form id="product-form" class="inline-form">
+        <input type="hidden" id="product-id" />
+        <input type="text" id="p-name" placeholder="Name" required />
+        <input type="text" id="p-category" placeholder="Category" />
+        <input type="number" id="p-price" placeholder="Price" step="0.01" required />
+        <input type="number" id="p-quantity" placeholder="Quantity" required />
+        <select id="p-supplier"></select>
+        <button type="submit">Save Product</button>
+      </form>
+      <table id="products-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Qty</th><th>Supplier</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- SUPPLIERS -->
+    <section id="tab-suppliers" class="tab-content hidden">
+      <h2>Suppliers</h2>
+      <form id="supplier-form" class="inline-form">
+        <input type="hidden" id="supplier-id" />
+        <input type="text" id="s-name" placeholder="Name" required />
+        <input type="text" id="s-phone" placeholder="Phone" />
+        <input type="email" id="s-email" placeholder="Email" />
+        <button type="submit">Save Supplier</button>
+      </form>
+      <table id="suppliers-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- SALES -->
+    <section id="tab-sales" class="tab-content hidden">
+      <h2>Record a Sale</h2>
+      <form id="sale-form" class="inline-form">
+        <select id="sale-product"></select>
+        <input type="number" id="sale-qty" placeholder="Quantity" min="1" value="1" />
+        <button type="button" id="add-item-btn">Add Item</button>
+      </form>
+      <ul id="sale-items-list"></ul>
+      <button id="submit-sale-btn">Submit Sale</button>
+
+      <h2>Sales History</h2>
+      <table id="sales-table">
+        <thead><tr><th>ID</th><th>Date</th><th>Total</th><th>Items</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
