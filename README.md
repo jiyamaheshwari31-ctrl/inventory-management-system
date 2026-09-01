@@ -139,26 +139,9 @@ connection string, so you never hand-type host/port/credentials:
 3. Paste it as-is into `DATABASE_URL`, just change `mysql://` to `mysql+pymysql://`
    at the front. Everything else (host, port, password) stays exactly as copied —
    don't retype any of it by hand, that's the #1 source of connection failures.
-
-**Option B — Aiven (MySQL, free tier, no card required)**
-1. Go to https://aiven.io → Create service → **MySQL** → free plan.
-2. Once it's running, open the service → **Overview** tab → copy the
-   **"Service URI"** (already includes SSL params it needs).
-3. Same rule: swap `mysql://` for `mysql+pymysql://` at the front, keep the rest
-   untouched.
-
-Either way, your final `DATABASE_URL` looks like:
-```
+   
 mysql+pymysql://user:password@host:port/dbname
 ```
-
-**Why this avoids the trouble you had before:** the failure mode with a broken DB
-connection is almost always a typo'd password/host from copying pieces separately,
-or a missing SSL flag the host silently requires. Copying the *whole* connection
-string in one paste — and only ever changing the `mysql://` prefix — avoids both.
-Test it immediately after creating it (step below) before building anything on top
-of it, so you catch a bad connection in 10 seconds instead of after you've built
-your whole backend.
 
 **Test the connection string before doing anything else:**
 ```bash
@@ -225,34 +208,9 @@ git push -u origin main
    - **Publish directory:** `frontend`
 4. Deploy. You'll get a URL like `https://your-app.netlify.app`.
 
-(Netlify/Vercel/GitHub Pages all work identically here since the frontend is static files —
-use whichever you're more comfortable with.)
-
 ---
 
-## 8. What to put in your submission
-
-1. **Source code** — the GitHub repo URL from step 5.
-2. **Deployed application** — the Netlify frontend URL from step 7.
-3. **Database design** — `database/schema.sql` plus this ER summary:
-   ```
-   suppliers (1) ──< products
-   users     (1) ──< sales
-   sales     (1) ──< sale_items >── (1) products
-   ```
-4. **API documentation** — the table in section 3, expanded with example request/response
-   bodies (the curl commands in section 2 double as examples).
-5. **Cloud architecture diagram**:
-   ```
-   Browser → Netlify (static frontend) → HTTPS → Render (Flask REST API) → MySQL (Railway/Aiven)
-   ```
-6. **Demo video** — record yourself: log in → add a supplier → add a product → record a
-   sale → show stock decrease → show the low-stock alert appear → show the live deployed
-   URL working, not just localhost.
-
----
-
-## 9. Notes on the "cloud computing concepts" this demonstrates
+## 8. Notes on the "cloud computing concepts" this demonstrates
 
 - **Cloud hosting** — frontend on Netlify, backend on Render, both reachable over the internet.
 - **Cloud database** — MySQL hosted on Railway/Aiven, not on your laptop.
