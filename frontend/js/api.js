@@ -3,7 +3,7 @@
 // =========================================================
 
 // Your backend already contains /api in its base path.
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "https://inventory-management-system-c5tr.onrender.com";
 
 
 function getToken() {
