@@ -15,7 +15,30 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    CORS(app)  # allow frontend (different origin) to call this API
+    # Allow the deployed Netlify frontend to access the Flask API,
+    # including requests containing the JWT Authorization header.
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "https://inventorymgtsys.netlify.app"
+                ]
+            }
+        },
+        methods=[
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "OPTIONS"
+        ],
+        allow_headers=[
+            "Content-Type",
+            "Authorization"
+        ]
+    )
+
     db.init_app(app)
     JWTManager(app)
 
@@ -36,6 +59,7 @@ def create_app():
 
 
 app = create_app()
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
