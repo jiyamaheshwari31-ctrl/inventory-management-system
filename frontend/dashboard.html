@@ -7,598 +7,1004 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
+<body class="dashboard-body">
 
-<!-- ==================== SIDEBAR ==================== -->
-<aside class="sidebar">
+<div class="app-layout">
 
-    <div class="sidebar-brand">
-        <div class="brand-icon">IS</div>
-        <div>
-            <h2>Inventory</h2>
-            <span>& Sales</span>
-        </div>
-    </div>
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+    <aside class="sidebar">
 
-    <nav class="sidebar-nav">
-
-        <button class="sidebar-link active" data-tab="products">
-            <span class="nav-icon">▦</span>
-            <span>Products</span>
-        </button>
-
-        <button class="sidebar-link" data-tab="suppliers">
-            <span class="nav-icon">♙</span>
-            <span>Suppliers</span>
-        </button>
-
-        <button class="sidebar-link" data-tab="sales">
-            <span class="nav-icon">↗</span>
-            <span>Sales</span>
-        </button>
-
-    </nav>
-
-    <div class="sidebar-bottom">
-
-        <div class="sidebar-user">
-            <div class="user-avatar" id="sidebar-user-avatar">U</div>
-
-            <div class="user-details">
-                <strong id="sidebar-user-name">User</strong>
-                <span id="sidebar-user-role">Staff</span>
-            </div>
-        </div>
-
-        <button id="logout-btn" class="logout-btn">
-            <span>↪</span>
-            Logout
-        </button>
-
-    </div>
-
-</aside>
-
-
-<!-- ==================== MAIN ==================== -->
-<main class="main-content">
-
-    <!-- TOP BAR -->
-    <header class="topbar">
-
-        <div>
-            <p class="breadcrumb">Inventory Management / <span id="current-section">Products</span></p>
-            <h1 id="page-title">Products</h1>
-        </div>
-
-        <div class="topbar-user">
+        <div class="sidebar-brand">
+            <div class="brand-logo">IS</div>
 
             <div>
-                <span class="welcome-label">Welcome back</span>
-                <strong id="welcome-name">User</strong>
-            </div>
-
-            <div class="top-avatar" id="top-avatar">U</div>
-
-        </div>
-
-    </header>
-
-
-    <!-- ==================== DASHBOARD SUMMARY ==================== -->
-    <section class="summary-cards" id="summary-cards">
-
-        <div class="summary-card">
-            <div class="summary-icon">▦</div>
-            <div>
-                <span>Total Products</span>
-                <strong>0</strong>
+                <h2>Inventory</h2>
+                <span>& Sales</span>
             </div>
         </div>
 
-        <div class="summary-card">
-            <div class="summary-icon">↗</div>
-            <div>
-                <span>Total Sales</span>
-                <strong>0</strong>
-            </div>
+        <div class="sidebar-section-title">
+            MANAGEMENT
         </div>
 
-        <div class="summary-card">
-            <div class="summary-icon">₹</div>
-            <div>
-                <span>Total Revenue</span>
-                <strong>₹0.00</strong>
-            </div>
-        </div>
+        <nav class="sidebar-nav">
 
-        <div class="summary-card warning-card">
-            <div class="summary-icon">!</div>
-            <div>
-                <span>Low Stock Items</span>
-                <strong>0</strong>
-            </div>
-        </div>
+            <button
+                class="sidebar-link active"
+                data-tab="products"
+                type="button"
+            >
+                <span class="nav-icon">▦</span>
+                <span>Products</span>
+            </button>
 
-    </section>
+            <button
+                class="sidebar-link"
+                data-tab="suppliers"
+                type="button"
+            >
+                <span class="nav-icon">♙</span>
+                <span>Suppliers</span>
+            </button>
 
+            <button
+                class="sidebar-link"
+                data-tab="sales"
+                type="button"
+            >
+                <span class="nav-icon">↗</span>
+                <span>Sales</span>
+            </button>
 
-    <!-- LOW STOCK ALERT -->
-    <section id="low-stock-alert" class="alert-box hidden"></section>
+        </nav>
 
+        <div class="sidebar-bottom">
 
-    <!-- ==================== PRODUCTS ==================== -->
-    <section id="tab-products" class="tab-content">
+            <div class="sidebar-user">
 
-        <div class="section-heading">
-
-            <div>
-                <h2>Products</h2>
-                <p>Manage your inventory and stock levels.</p>
-            </div>
-
-            <span id="product-count" class="record-count">0 products</span>
-
-        </div>
-
-
-        <!-- PRODUCT FORM -->
-        <div class="panel">
-
-            <div class="panel-heading">
-                <div>
-                    <h3 id="product-form-title">Add Product</h3>
-                    <p>Create or update an inventory item.</p>
+                <div
+                    class="avatar"
+                    id="sidebar-user-avatar"
+                >
+                    U
                 </div>
+
+                <div class="sidebar-user-info">
+                    <strong id="sidebar-user-name">User</strong>
+                    <span id="sidebar-user-role">Staff</span>
+                </div>
+
             </div>
 
-            <form id="product-form" class="form-grid">
+            <button
+                id="logout-btn"
+                class="logout-btn"
+                type="button"
+            >
+                <span>↪</span>
+                Logout
+            </button>
 
-                <input type="hidden" id="product-id">
+        </div>
 
-                <div class="form-group">
-                    <label for="p-name">Product Name</label>
-                    <input
-                        type="text"
-                        id="p-name"
-                        placeholder="e.g. Wireless Mouse"
-                        required
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+
+            <div>
+                <p class="breadcrumb">
+                    Inventory Management /
+                    <span id="current-section">Products</span>
+                </p>
+
+                <h1 id="page-title">Products</h1>
+            </div>
+
+            <div class="topbar-user">
+
+                <div class="top-user-text">
+                    <span>Welcome back</span>
+                    <strong id="welcome-name">User</strong>
+                </div>
+
+                <div
+                    class="top-avatar"
+                    id="top-avatar"
+                >
+                    U
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             PAGE CONTENT
+        ================================================== -->
+        <div class="page-content">
+
+
+            <!-- =================================================
+                 SUMMARY
+            ================================================== -->
+            <section
+                class="summary-grid"
+                id="summary-cards"
+            >
+
+                <div class="summary-card">
+
+                    <div class="summary-top">
+                        <span class="summary-label">
+                            TOTAL PRODUCTS
+                        </span>
+
+                        <div class="summary-icon">
+                            ▦
+                        </div>
+                    </div>
+
+                    <div class="summary-value">
+                        0
+                    </div>
+
+                    <div class="summary-description">
+                        Products currently in catalogue
+                    </div>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <div class="summary-top">
+                        <span class="summary-label">
+                            TOTAL SALES
+                        </span>
+
+                        <div class="summary-icon">
+                            ↗
+                        </div>
+                    </div>
+
+                    <div class="summary-value">
+                        0
+                    </div>
+
+                    <div class="summary-description">
+                        Completed transactions
+                    </div>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <div class="summary-top">
+                        <span class="summary-label">
+                            TOTAL REVENUE
+                        </span>
+
+                        <div class="summary-icon">
+                            ₹
+                        </div>
+                    </div>
+
+                    <div class="summary-value">
+                        ₹0.00
+                    </div>
+
+                    <div class="summary-description">
+                        Revenue generated from sales
+                    </div>
+
+                </div>
+
+
+                <div class="summary-card">
+
+                    <div class="summary-top">
+                        <span class="summary-label">
+                            LOW STOCK
+                        </span>
+
+                        <div class="summary-icon">
+                            !
+                        </div>
+                    </div>
+
+                    <div class="summary-value">
+                        0
+                    </div>
+
+                    <div class="summary-description">
+                        Products requiring attention
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- LOW STOCK ALERT -->
+            <section
+                id="low-stock-alert"
+                class="alert-box hidden"
+            ></section>
+
+
+            <!-- =================================================
+                 PRODUCTS
+            ================================================== -->
+            <section
+                id="tab-products"
+                class="tab-content"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Products</h2>
+                        <p>
+                            Manage your inventory and stock levels.
+                        </p>
+                    </div>
+
+                    <span
+                        id="product-count"
+                        class="record-count"
                     >
+                        0 products
+                    </span>
+
                 </div>
 
-                <div class="form-group">
-                    <label for="p-category">Category</label>
-                    <input
-                        type="text"
-                        id="p-category"
-                        placeholder="e.g. Electronics"
+
+                <!-- PRODUCT FORM -->
+                <div class="form-card">
+
+                    <div class="form-card-header">
+
+                        <h3 id="product-form-title">
+                            Add Product
+                        </h3>
+
+                        <p>
+                            Create or update an inventory item.
+                        </p>
+
+                    </div>
+
+
+                    <form
+                        id="product-form"
+                        class="form-grid"
                     >
+
+                        <input
+                            type="hidden"
+                            id="product-id"
+                        >
+
+
+                        <div class="form-group">
+
+                            <label for="p-name">
+                                Product Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="p-name"
+                                placeholder="e.g. Wireless Mouse"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="p-category">
+                                Category
+                            </label>
+
+                            <input
+                                type="text"
+                                id="p-category"
+                                placeholder="e.g. Electronics"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="p-price">
+                                Price (₹)
+                            </label>
+
+                            <input
+                                type="number"
+                                id="p-price"
+                                placeholder="599.00"
+                                step="0.01"
+                                min="0"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="p-quantity">
+                                Quantity
+                            </label>
+
+                            <input
+                                type="number"
+                                id="p-quantity"
+                                placeholder="20"
+                                min="0"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="p-supplier">
+                                Supplier
+                            </label>
+
+                            <select id="p-supplier">
+                                <option value="">
+                                    No supplier
+                                </option>
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-actions">
+
+                            <button
+                                type="submit"
+                                class="primary-btn"
+                            >
+                                <span id="product-submit-icon">
+                                    ＋
+                                </span>
+
+                                <span id="product-submit-text">
+                                    Add Product
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                id="product-cancel-btn"
+                                class="secondary-btn hidden"
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
+
+                    </form>
+
                 </div>
 
-                <div class="form-group">
-                    <label for="p-price">Price (₹)</label>
-                    <input
-                        type="number"
-                        id="p-price"
-                        placeholder="599.00"
-                        step="0.01"
-                        min="0"
-                        required
+
+                <!-- PRODUCT TABLE -->
+                <div class="table-card">
+
+                    <div class="table-header">
+
+                        <div>
+                            <h3>Product Inventory</h3>
+
+                            <span>
+                                Search, review and manage your products
+                            </span>
+                        </div>
+
+                        <div class="search-box">
+
+                            <span>⌕</span>
+
+                            <input
+                                type="text"
+                                id="product-search"
+                                placeholder="Search products..."
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="table-actions"
+                        style="
+                            display:flex;
+                            justify-content:flex-end;
+                            gap:8px;
+                            padding:12px 20px;
+                            border-bottom:1px solid var(--border);
+                        "
                     >
-                </div>
 
-                <div class="form-group">
-                    <label for="p-quantity">Quantity</label>
-                    <input
-                        type="number"
-                        id="p-quantity"
-                        placeholder="20"
-                        min="0"
-                        required
+                        <button
+                            type="button"
+                            id="search-btn"
+                            class="secondary-btn"
+                        >
+                            Search
+                        </button>
+
+                        <button
+                            type="button"
+                            id="export-products-btn"
+                            class="secondary-btn"
+                        >
+                            ↓ Export CSV
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table id="products-table">
+
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>PRODUCT</th>
+                                    <th>CATEGORY</th>
+                                    <th>PRICE</th>
+                                    <th>STOCK</th>
+                                    <th>SUPPLIER</th>
+                                    <th>STATUS</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <div
+                        id="products-empty"
+                        class="empty-state hidden"
                     >
+                        <div class="empty-icon">
+                            ▦
+                        </div>
+
+                        <h3>No products found</h3>
+
+                        <p>
+                            Try changing your search or add a new product.
+                        </p>
+                    </div>
+
+
+                    <div
+                        id="products-pagination"
+                        style="
+                            display:flex;
+                            justify-content:center;
+                            gap:6px;
+                            padding:16px;
+                        "
+                    ></div>
+
                 </div>
 
-                <div class="form-group">
-                    <label for="p-supplier">Supplier</label>
-                    <select id="p-supplier">
-                        <option value="">No supplier</option>
-                    </select>
+            </section>
+
+
+            <!-- =================================================
+                 SUPPLIERS
+            ================================================== -->
+            <section
+                id="tab-suppliers"
+                class="tab-content hidden"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Suppliers</h2>
+
+                        <p>
+                            Manage the suppliers connected to your inventory.
+                        </p>
+                    </div>
+
+                    <span
+                        id="supplier-count"
+                        class="record-count"
+                    >
+                        0 suppliers
+                    </span>
+
                 </div>
 
-                <div class="form-actions">
 
-                    <button type="submit" class="primary-btn">
-                        <span id="product-submit-icon">＋</span>
-                        <span id="product-submit-text">Add Product</span>
-                    </button>
+                <!-- SUPPLIER FORM -->
+                <div class="form-card">
+
+                    <div class="form-card-header">
+
+                        <h3 id="supplier-form-title">
+                            Add Supplier
+                        </h3>
+
+                        <p>
+                            Create or update supplier information.
+                        </p>
+
+                    </div>
+
+
+                    <form
+                        id="supplier-form"
+                        class="form-grid"
+                    >
+
+                        <input
+                            type="hidden"
+                            id="supplier-id"
+                        >
+
+
+                        <div class="form-group">
+
+                            <label for="s-name">
+                                Supplier Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="s-name"
+                                placeholder="Supplier name"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="s-phone">
+                                Phone
+                            </label>
+
+                            <input
+                                type="text"
+                                id="s-phone"
+                                placeholder="Phone number"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="s-email">
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                id="s-email"
+                                placeholder="supplier@example.com"
+                            >
+
+                        </div>
+
+
+                        <div class="form-actions">
+
+                            <button
+                                type="submit"
+                                class="primary-btn"
+                            >
+                                <span id="supplier-submit-icon">
+                                    ＋
+                                </span>
+
+                                <span id="supplier-submit-text">
+                                    Add Supplier
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                id="supplier-cancel-btn"
+                                class="secondary-btn hidden"
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+
+                <!-- SUPPLIER TABLE -->
+                <div class="table-card">
+
+                    <div class="table-header">
+
+                        <div>
+                            <h3>Supplier Directory</h3>
+
+                            <span>
+                                View and manage supplier information
+                            </span>
+                        </div>
+
+                        <div class="search-box">
+
+                            <span>⌕</span>
+
+                            <input
+                                type="text"
+                                id="supplier-search"
+                                placeholder="Search suppliers..."
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:flex-end;
+                            padding:12px 20px;
+                            border-bottom:1px solid var(--border);
+                        "
+                    >
+
+                        <button
+                            type="button"
+                            id="supplier-search-btn"
+                            class="secondary-btn"
+                        >
+                            Search
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table id="suppliers-table">
+
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>SUPPLIER</th>
+                                    <th>PHONE</th>
+                                    <th>EMAIL</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <div
+                        id="suppliers-empty"
+                        class="empty-state hidden"
+                    >
+
+                        <div class="empty-icon">
+                            ♙
+                        </div>
+
+                        <h3>No suppliers found</h3>
+
+                        <p>
+                            Try another search or add a new supplier.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SALES
+            ================================================== -->
+            <section
+                id="tab-sales"
+                class="tab-content hidden"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Sales</h2>
+
+                        <p>
+                            Record sales and monitor your transaction history.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- CREATE SALE -->
+                <div class="sale-layout">
+
+                    <div class="form-card sale-create-card">
+
+                        <div class="form-card-header">
+
+                            <div
+                                style="
+                                    display:flex;
+                                    justify-content:space-between;
+                                    align-items:flex-start;
+                                    gap:20px;
+                                "
+                            >
+
+                                <div>
+
+                                    <h3>
+                                        Record a Sale
+                                    </h3>
+
+                                    <p>
+                                        Add products to the transaction
+                                        before completing it.
+                                    </p>
+
+                                </div>
+
+                                <div class="sale-total-label">
+                                    Current Total
+                                    <strong id="sale-total">
+                                        ₹0.00
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="sale-add-row">
+
+                            <div class="form-group">
+
+                                <label for="sale-product">
+                                    Product
+                                </label>
+
+                                <select id="sale-product">
+                                    <option value="">
+                                        Select a product
+                                    </option>
+                                </select>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="sale-qty">
+                                    Quantity
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="sale-qty"
+                                    min="1"
+                                    value="1"
+                                >
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                id="add-item-btn"
+                                class="primary-btn add-item-btn"
+                            >
+                                ＋ Add Item
+                            </button>
+
+                        </div>
+
+
+                        <div class="sale-items-heading">
+
+                            <h4>
+                                Items in sale
+                            </h4>
+
+                            <span id="sale-item-count">
+                                0 items
+                            </span>
+
+                        </div>
+
+
+                        <ul
+                            id="sale-items-list"
+                            class="sale-items-list"
+                        ></ul>
+
+
+                        <button
+                            type="button"
+                            id="submit-sale-btn"
+                            class="complete-sale-btn"
+                        >
+                            ✓ Complete Sale
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SALES HISTORY -->
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Sales History</h2>
+
+                        <p>
+                            Review previously recorded transactions.
+                        </p>
+                    </div>
 
                     <button
                         type="button"
-                        id="product-cancel-btn"
-                        class="secondary-btn hidden"
+                        id="export-sales-btn"
+                        class="secondary-btn"
                     >
-                        Cancel
+                        ↓ Export Sales CSV
                     </button>
 
                 </div>
 
-            </form>
 
-        </div>
+                <div class="table-card">
 
+                    <div class="table-header">
 
-        <!-- PRODUCT SEARCH / EXPORT -->
-        <div class="toolbar">
+                        <div>
+                            <h3>Transaction History</h3>
 
-            <div class="search-box">
+                            <span>
+                                Previously completed sales
+                            </span>
+                        </div>
 
-                <span class="search-icon">⌕</span>
+                        <div class="search-box">
 
-                <input
-                    type="text"
-                    id="product-search"
-                    placeholder="Search products by name..."
-                >
+                            <span>⌕</span>
 
-            </div>
+                            <input
+                                type="text"
+                                id="sales-search"
+                                placeholder="Search by sale ID..."
+                            >
 
-            <button type="button" id="search-btn" class="secondary-btn">
-                Search
-            </button>
+                        </div>
 
-            <button
-                type="button"
-                id="export-products-btn"
-                class="secondary-btn"
-            >
-                ↓ Export CSV
-            </button>
+                    </div>
 
-        </div>
 
-
-        <!-- PRODUCTS TABLE -->
-        <div class="table-panel">
-
-            <div class="table-wrapper">
-
-                <table id="products-table">
-
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Product</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Supplier</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody></tbody>
-
-                </table>
-
-            </div>
-
-            <div id="products-empty" class="empty-state hidden">
-                <div class="empty-icon">▦</div>
-                <h3>No products found</h3>
-                <p>Try changing your search or add a new product.</p>
-            </div>
-
-            <div id="products-pagination" class="pagination"></div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ==================== SUPPLIERS ==================== -->
-    <section id="tab-suppliers" class="tab-content hidden">
-
-        <div class="section-heading">
-
-            <div>
-                <h2>Suppliers</h2>
-                <p>Manage the suppliers connected to your inventory.</p>
-            </div>
-
-            <span id="supplier-count" class="record-count">0 suppliers</span>
-
-        </div>
-
-
-        <!-- SUPPLIER FORM -->
-        <div class="panel">
-
-            <div class="panel-heading">
-                <div>
-                    <h3 id="supplier-form-title">Add Supplier</h3>
-                    <p>Create or update supplier information.</p>
-                </div>
-            </div>
-
-            <form id="supplier-form" class="form-grid">
-
-                <input type="hidden" id="supplier-id">
-
-                <div class="form-group">
-                    <label for="s-name">Supplier Name</label>
-                    <input
-                        type="text"
-                        id="s-name"
-                        placeholder="Supplier name"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="s-phone">Phone</label>
-                    <input
-                        type="text"
-                        id="s-phone"
-                        placeholder="Phone number"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="s-email">Email</label>
-                    <input
-                        type="email"
-                        id="s-email"
-                        placeholder="supplier@example.com"
-                    >
-                </div>
-
-                <div class="form-actions">
-
-                    <button type="submit" class="primary-btn">
-                        <span id="supplier-submit-icon">＋</span>
-                        <span id="supplier-submit-text">Add Supplier</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        id="supplier-cancel-btn"
-                        class="secondary-btn hidden"
-                    >
-                        Cancel
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-
-        <!-- SUPPLIER SEARCH -->
-        <div class="toolbar">
-
-            <div class="search-box">
-
-                <span class="search-icon">⌕</span>
-
-                <input
-                    type="text"
-                    id="supplier-search"
-                    placeholder="Search suppliers..."
-                >
-
-            </div>
-
-            <button type="button" id="supplier-search-btn" class="secondary-btn">
-                Search
-            </button>
-
-        </div>
-
-
-        <!-- SUPPLIER TABLE -->
-        <div class="table-panel">
-
-            <div class="table-wrapper">
-
-                <table id="suppliers-table">
-
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Supplier</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody></tbody>
-
-                </table>
-
-            </div>
-
-            <div id="suppliers-empty" class="empty-state hidden">
-                <div class="empty-icon">♙</div>
-                <h3>No suppliers found</h3>
-                <p>Try another search or add a new supplier.</p>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ==================== SALES ==================== -->
-    <section id="tab-sales" class="tab-content hidden">
-
-        <div class="section-heading">
-
-            <div>
-                <h2>Sales</h2>
-                <p>Record sales and monitor your transaction history.</p>
-            </div>
-
-        </div>
-
-
-        <!-- CREATE SALE -->
-        <div class="panel">
-
-            <div class="panel-heading">
-
-                <div>
-                    <h3>Record a Sale</h3>
-                    <p>Add products to the transaction before submitting.</p>
-                </div>
-
-                <div class="sale-total-display">
-                    <span>Current Total</span>
-                    <strong id="sale-total">₹0.00</strong>
-                </div>
-
-            </div>
-
-
-            <div class="sale-form">
-
-                <div class="form-group sale-product-group">
-
-                    <label for="sale-product">Product</label>
-
-                    <select id="sale-product"></select>
-
-                </div>
-
-                <div class="form-group sale-quantity-group">
-
-                    <label for="sale-qty">Quantity</label>
-
-                    <input
-                        type="number"
-                        id="sale-qty"
-                        min="1"
-                        value="1"
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:flex-end;
+                            padding:12px 20px;
+                            border-bottom:1px solid var(--border);
+                        "
                     >
 
+                        <button
+                            type="button"
+                            id="sales-search-btn"
+                            class="secondary-btn"
+                        >
+                            Search
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table id="sales-table">
+
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>DATE</th>
+                                    <th>TOTAL</th>
+                                    <th>ITEMS</th>
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <div
+                        id="sales-empty"
+                        class="empty-state hidden"
+                    >
+
+                        <div class="empty-icon">
+                            ↗
+                        </div>
+
+                        <h3>No sales found</h3>
+
+                        <p>
+                            Sales transactions will appear here.
+                        </p>
+
+                    </div>
+
                 </div>
 
-                <button
-                    type="button"
-                    id="add-item-btn"
-                    class="primary-btn sale-add-btn"
-                >
-                    ＋ Add Item
-                </button>
-
-            </div>
-
-
-            <div class="sale-items-header">
-                <span>Items in sale</span>
-                <span id="sale-item-count">0 items</span>
-            </div>
-
-            <ul id="sale-items-list" class="sale-items-list"></ul>
-
-
-            <div class="sale-submit-row">
-
-                <button
-                    type="button"
-                    id="submit-sale-btn"
-                    class="success-btn"
-                >
-                    Complete Sale
-                </button>
-
-            </div>
+            </section>
 
         </div>
 
+    </main>
 
-        <!-- SALES HISTORY -->
-        <div class="section-heading sales-history-heading">
-
-            <div>
-                <h2>Sales History</h2>
-                <p>Review previously recorded transactions.</p>
-            </div>
-
-            <button
-                type="button"
-                id="export-sales-btn"
-                class="secondary-btn"
-            >
-                ↓ Export Sales CSV
-            </button>
-
-        </div>
+</div>
 
 
-        <div class="toolbar">
-
-            <div class="search-box">
-
-                <span class="search-icon">⌕</span>
-
-                <input
-                    type="text"
-                    id="sales-search"
-                    placeholder="Search sales by ID..."
-                >
-
-            </div>
-
-            <button
-                type="button"
-                id="sales-search-btn"
-                class="secondary-btn"
-            >
-                Search
-            </button>
-
-        </div>
-
-
-        <div class="table-panel">
-
-            <div class="table-wrapper">
-
-                <table id="sales-table">
-
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Items</th>
-                        </tr>
-                    </thead>
-
-                    <tbody></tbody>
-
-                </table>
-
-            </div>
-
-            <div id="sales-empty" class="empty-state hidden">
-                <div class="empty-icon">↗</div>
-                <h3>No sales found</h3>
-                <p>Sales transactions will appear here.</p>
-            </div>
-
-        </div>
-
-    </section>
-
-</main>
-
-
-<!-- ==================== TOAST CONTAINER ==================== -->
-<div id="toast-container" class="toast-container"></div>
+<!-- =====================================================
+     TOAST
+====================================================== -->
+<div
+    id="toast-container"
+    class="toast-container"
+></div>
 
 
 <script src="js/api.js"></script>
@@ -606,3 +1012,4 @@
 
 </body>
 </html>
+
