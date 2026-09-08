@@ -28,8 +28,32 @@ def create_product():
 @products_bp.route("", methods=["GET"])
 @jwt_required()
 def get_products():
-    products = Product.query.all()
-    return jsonify([p.to_dict() for p in products]), 200
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 20, type=int)
+    search = request.args.get("search", "", type=str).strip()
+    category = request.args.get("category", "", type=str).strip()
+
+    query = Product.query
+    if search:
+        query = query.filter(Product.name.ilike(f"%{search}%"))
+    if category:
+        query = query.filter(Product.category == category)
+
+    total = query.count()
+    products = (
+        query.order_by(Product.product_id)
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+
+    return jsonify({
+        "items": [p.to_dict() for p in products],
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "pages": max((total + limit - 1) // limit, 1),
+    }), 200
 
 
 @products_bp.route("/<int:product_id>", methods=["GET"])

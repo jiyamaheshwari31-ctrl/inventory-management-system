@@ -1,2173 +1,1596 @@
-// =========================================================
+// ============================================================
 // AUTH CHECK
-// =========================================================
+// ============================================================
 
 if (!getToken()) {
-
-    window.location.href =
-        "index.html";
+    window.location.href = "index.html";
 }
 
 
-// =========================================================
-// USER
-// =========================================================
+// ============================================================
+// USER INFORMATION
+// ============================================================
 
-const user =
-    JSON.parse(
-        localStorage.getItem("user") || "{}"
-    );
+const user = JSON.parse(localStorage.getItem("user") || "{}");
 
+const userName = user.name || "User";
+const userRole = user.role || "Staff";
 
-const userName =
-    user.name || "Admin";
+document.getElementById("welcome-name").textContent = userName;
+document.getElementById("sidebar-user-name").textContent = userName;
+document.getElementById("sidebar-user-role").textContent = userRole;
 
+const initials = userName
+    .split(" ")
+    .map(word => word.charAt(0))
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
 
-const userRole =
-    user.role || "Administrator";
-
-
-document.getElementById(
-    "welcome-name"
-).textContent = userName;
-
-
-document.getElementById(
-    "sidebar-user-name"
-).textContent = userName;
+document.getElementById("top-avatar").textContent = initials;
+document.getElementById("sidebar-user-avatar").textContent = initials;
 
 
-document.getElementById(
-    "sidebar-user-role"
-).textContent = userRole;
-
-
-const initial =
-    userName
-        .charAt(0)
-        .toUpperCase();
-
-
-document.getElementById(
-    "user-avatar"
-).textContent = initial;
-
-
-document.getElementById(
-    "top-avatar"
-).textContent = initial;
-
-
-// =========================================================
-// LOGOUT
-// =========================================================
-
-document
-    .getElementById("logout-btn")
-    .addEventListener(
-        "click",
-        () => {
-
-            localStorage.removeItem(
-                "token"
-            );
-
-            localStorage.removeItem(
-                "user"
-            );
-
-            window.location.href =
-                "index.html";
-
-        }
-    );
-
-
-// =========================================================
-// DATA
-// =========================================================
+// ============================================================
+// GLOBAL STATE
+// ============================================================
 
 let suppliersCache = [];
-
 let productsCache = [];
-
+let allProductsCache = [];
 let salesCache = [];
 
 let currentSaleItems = [];
 
+let currentProductPage = 1;
+const pageSize = 5;
 
-// =========================================================
-// TOAST
-// =========================================================
-
-function showToast(
-    message,
-    type = "success"
-) {
-
-    const container =
-        document.getElementById(
-            "toast-container"
-        );
+let currentProductSearch = "";
+let currentSupplierSearch = "";
+let currentSalesSearch = "";
 
 
-    const toast =
-        document.createElement("div");
+// ============================================================
+// HELPERS
+// ============================================================
+
+function formatCurrency(value) {
+    return `₹${Number(value || 0).toFixed(2)}`;
+}
 
 
-    toast.className =
-        `toast ${type}`;
+function escapeHTML(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
 
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function showToast(message, type = "success") {
+
+    const container = document.getElementById("toast-container");
+
+    const toast = document.createElement("div");
+
+    toast.className = `toast toast-${type}`;
 
     toast.innerHTML = `
-        <span>
+        <span class="toast-icon">
             ${type === "success" ? "✓" : "!"}
         </span>
-
-        <span>
-            ${escapeHTML(message)}
-        </span>
+        <span>${escapeHTML(message)}</span>
     `;
-
 
     container.appendChild(toast);
 
+    setTimeout(() => {
+        toast.classList.add("toast-hide");
 
-    setTimeout(
-        () => {
+        setTimeout(() => {
             toast.remove();
-        },
-        3000
-    );
+        }, 300);
 
+    }, 3000);
 }
 
 
-// =========================================================
-// TABS
-// =========================================================
+function getErrorMessage(error) {
 
-document
-    .querySelectorAll(".sidebar-link")
-    .forEach(
-        (button) => {
+    if (error && error.message) {
+        return error.message;
+    }
 
-            button.addEventListener(
-                "click",
-                () => {
-
-                    const tab =
-                        button.dataset.tab;
+    return "Something went wrong. Please try again.";
+}
 
 
-                    document
-                        .querySelectorAll(
-                            ".sidebar-link"
-                        )
-                        .forEach(
-                            (btn) => {
-                                btn.classList.remove(
-                                    "active"
-                                );
-                            }
-                        );
+// ============================================================
+// LOGOUT
+// ============================================================
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    window.location.href = "index.html";
+});
 
 
-                    document
-                        .querySelectorAll(
-                            ".tab-content"
-                        )
-                        .forEach(
-                            (section) => {
-                                section.classList.add(
-                                    "hidden"
-                                );
-                            }
-                        );
+// ============================================================
+// TABS / SIDEBAR NAVIGATION
+// ============================================================
+
+document.querySelectorAll(".sidebar-link").forEach((button) => {
+
+    button.addEventListener("click", () => {
+
+        const tabName = button.dataset.tab;
+
+        document.querySelectorAll(".sidebar-link")
+            .forEach(btn => btn.classList.remove("active"));
+
+        document.querySelectorAll(".tab-content")
+            .forEach(section => section.classList.add("hidden"));
+
+        button.classList.add("active");
+
+        document
+            .getElementById(`tab-${tabName}`)
+            .classList.remove("hidden");
+
+        const titles = {
+            products: "Products",
+            suppliers: "Suppliers",
+            sales: "Sales"
+        };
+
+        document.getElementById("page-title").textContent = titles[tabName];
+        document.getElementById("current-section").textContent = titles[tabName];
+    });
+});
 
 
-                    button.classList.add(
-                        "active"
-                    );
-
-
-                    document
-                        .getElementById(
-                            `tab-${tab}`
-                        )
-                        .classList.remove(
-                            "hidden"
-                        );
-
-
-                    const titles = {
-
-                        products:
-                            "Inventory Overview",
-
-                        suppliers:
-                            "Supplier Management",
-
-                        sales:
-                            "Sales Management"
-
-                    };
-
-
-                    const sectionNames = {
-
-                        products:
-                            "Products",
-
-                        suppliers:
-                            "Suppliers",
-
-                        sales:
-                            "Sales"
-
-                    };
-
-
-                    document.getElementById(
-                        "page-title"
-                    ).textContent =
-                        titles[tab];
-
-
-                    document.getElementById(
-                        "current-section"
-                    ).textContent =
-                        sectionNames[tab];
-
-                }
-            );
-
-        }
-    );
-
-
-// =========================================================
-// SUMMARY
-// =========================================================
+// ============================================================
+// DASHBOARD SUMMARY
+// ============================================================
 
 async function loadSummary() {
 
-    const data =
-        await apiRequest(
-            "/dashboard/summary"
-        );
+    try {
 
+        const data = await apiRequest("/dashboard/summary");
 
-    document.getElementById(
-        "summary-cards"
-    ).innerHTML = `
+        const totalProducts = Number(data.total_products || 0);
+        const totalSales = Number(data.total_sales || 0);
+        const totalRevenue = Number(data.total_revenue || 0);
+        const lowStockProducts = data.low_stock_products || [];
 
-        <div class="summary-card">
+        document.getElementById("summary-cards").innerHTML = `
 
-            <div class="summary-top">
-
-                <span class="summary-label">
-                    TOTAL PRODUCTS
-                </span>
-
-                <div class="summary-icon">
-                    ▦
+            <div class="summary-card">
+                <div class="summary-icon">▦</div>
+                <div>
+                    <span>Total Products</span>
+                    <strong>${totalProducts}</strong>
                 </div>
-
             </div>
 
-            <div class="summary-value">
-                ${Number(data.total_products || 0)}
-            </div>
-
-            <div class="summary-description">
-                Products currently in catalogue
-            </div>
-
-        </div>
-
-
-        <div class="summary-card">
-
-            <div class="summary-top">
-
-                <span class="summary-label">
-                    TOTAL SALES
-                </span>
-
-                <div class="summary-icon">
-                    ↗
+            <div class="summary-card">
+                <div class="summary-icon">↗</div>
+                <div>
+                    <span>Total Sales</span>
+                    <strong>${totalSales}</strong>
                 </div>
-
             </div>
 
-            <div class="summary-value">
-                ${Number(data.total_sales || 0)}
-            </div>
-
-            <div class="summary-description">
-                Completed transactions
-            </div>
-
-        </div>
-
-
-        <div class="summary-card">
-
-            <div class="summary-top">
-
-                <span class="summary-label">
-                    TOTAL REVENUE
-                </span>
-
-                <div class="summary-icon">
-                    ₹
+            <div class="summary-card">
+                <div class="summary-icon">₹</div>
+                <div>
+                    <span>Total Revenue</span>
+                    <strong>${formatCurrency(totalRevenue)}</strong>
                 </div>
-
             </div>
 
-            <div class="summary-value">
-                ₹${Number(
-                    data.total_revenue || 0
-                ).toFixed(2)}
-            </div>
-
-            <div class="summary-description">
-                Revenue generated from sales
-            </div>
-
-        </div>
-
-
-        <div class="summary-card">
-
-            <div class="summary-top">
-
-                <span class="summary-label">
-                    LOW STOCK
-                </span>
-
-                <div class="summary-icon">
-                    !
+            <div class="summary-card warning-card">
+                <div class="summary-icon">!</div>
+                <div>
+                    <span>Low Stock Items</span>
+                    <strong>${lowStockProducts.length}</strong>
                 </div>
-
             </div>
-
-            <div class="summary-value">
-                ${
-                    Array.isArray(
-                        data.low_stock_products
-                    )
-                        ? data.low_stock_products.length
-                        : 0
-                }
-            </div>
-
-            <div class="summary-description">
-                Products requiring attention
-            </div>
-
-        </div>
-
-    `;
-
-
-    const alertBox =
-        document.getElementById(
-            "low-stock-alert"
-        );
-
-
-    const lowStock =
-        Array.isArray(
-            data.low_stock_products
-        )
-            ? data.low_stock_products
-            : [];
-
-
-    if (lowStock.length > 0) {
-
-        alertBox.classList.remove(
-            "hidden"
-        );
-
-
-        alertBox.innerHTML = `
-
-            <div class="alert-icon">
-                !
-            </div>
-
-            <div>
-
-                <strong>
-                    Low stock alert:
-                </strong>
-
-                ${lowStock
-                    .map(
-                        (p) =>
-                            `${escapeHTML(
-                                p.name
-                            )} (${p.quantity})`
-                    )
-                    .join(", ")}
-
-            </div>
-
         `;
 
-    } else {
 
-        alertBox.classList.add(
-            "hidden"
-        );
+        const alertBox = document.getElementById("low-stock-alert");
 
+        if (lowStockProducts.length > 0) {
+
+            alertBox.classList.remove("hidden");
+
+            alertBox.innerHTML = `
+                <strong>⚠ Low stock alert</strong>
+                <span>
+                    ${lowStockProducts
+                        .map(p =>
+                            `${escapeHTML(p.name)} (${p.quantity} left)`
+                        )
+                        .join(", ")}
+                </span>
+            `;
+
+        } else {
+
+            alertBox.classList.add("hidden");
+            alertBox.innerHTML = "";
+        }
+
+    } catch (error) {
+
+        showToast(getErrorMessage(error), "error");
     }
-
 }
 
 
-// =========================================================
+// ============================================================
 // SUPPLIERS
-// =========================================================
+// ============================================================
 
 async function loadSuppliers() {
 
-    suppliersCache =
-        await apiRequest(
-            "/suppliers"
-        );
+    try {
 
+        suppliersCache = await apiRequest("/suppliers");
 
-    renderSuppliers();
+        renderSuppliers();
 
+        updateSupplierDropdown();
 
-    const supplierSelect =
-        document.getElementById(
-            "p-supplier"
-        );
+    } catch (error) {
 
-
-    supplierSelect.innerHTML =
-        `<option value="">
-            No supplier
-        </option>` +
-        suppliersCache
-            .map(
-                (supplier) => `
-                    <option
-                        value="${supplier.supplier_id}"
-                    >
-                        ${escapeHTML(
-                            supplier.name
-                        )}
-                    </option>
-                `
-            )
-            .join("");
-
+        showToast(getErrorMessage(error), "error");
+    }
 }
 
 
-// ---------------------------------------------------------
-// RENDER SUPPLIERS
-// ---------------------------------------------------------
-
 function renderSuppliers() {
 
-    const search =
-        document
-            .getElementById(
-                "supplier-search"
-            )
-            .value
-            .toLowerCase()
-            .trim();
+    const tbody = document.querySelector("#suppliers-table tbody");
+    const emptyState = document.getElementById("suppliers-empty");
 
+    const search = currentSupplierSearch.toLowerCase().trim();
 
-    const filtered =
-        suppliersCache.filter(
-            (supplier) => {
+    const filtered = suppliersCache.filter(supplier => {
 
-                return (
+        const name = String(supplier.name || "").toLowerCase();
+        const phone = String(supplier.phone || "").toLowerCase();
+        const email = String(supplier.email || "").toLowerCase();
 
-                    String(
-                        supplier.supplier_id
-                    ).includes(search)
-
-                    ||
-
-                    (supplier.name || "")
-                        .toLowerCase()
-                        .includes(search)
-
-                    ||
-
-                    (supplier.phone || "")
-                        .toLowerCase()
-                        .includes(search)
-
-                    ||
-
-                    (supplier.email || "")
-                        .toLowerCase()
-                        .includes(search)
-
-                );
-
-            }
+        return (
+            name.includes(search) ||
+            phone.includes(search) ||
+            email.includes(search)
         );
+    });
 
 
-    document.getElementById(
-        "supplier-count"
-    ).textContent =
-        `${suppliersCache.length} supplier${
-            suppliersCache.length !== 1
-                ? "s"
-                : ""
-        }`;
+    document.getElementById("supplier-count").textContent =
+        `${filtered.length} supplier${filtered.length !== 1 ? "s" : ""}`;
 
 
-    const tbody =
-        document.querySelector(
-            "#suppliers-table tbody"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "suppliers-empty"
-        );
-
-
-    if (filtered.length === 0) {
+    if (!filtered.length) {
 
         tbody.innerHTML = "";
-
-        empty.classList.remove(
-            "hidden"
-        );
+        emptyState.classList.remove("hidden");
 
         return;
-
     }
 
-
-    empty.classList.add(
-        "hidden"
-    );
+    emptyState.classList.add("hidden");
 
 
-    tbody.innerHTML =
-        filtered
-            .map(
-                (supplier) => `
+    tbody.innerHTML = filtered.map(s => `
 
-                    <tr>
+        <tr>
 
-                        <td>
-                            #${supplier.supplier_id}
-                        </td>
+            <td>#${s.supplier_id}</td>
 
+            <td>
+                <div class="table-primary">
+                    ${escapeHTML(s.name)}
+                </div>
+            </td>
 
-                        <td>
+            <td>${escapeHTML(s.phone || "-")}</td>
 
-                            <div class="product-name-cell">
+            <td>${escapeHTML(s.email || "-")}</td>
 
-                                <div class="product-mini-icon">
-                                    ${escapeHTML(
-                                        (
-                                            supplier.name ||
-                                            "S"
-                                        )
-                                            .charAt(0)
-                                            .toUpperCase()
-                                    )}
-                                </div>
+            <td>
 
-                                <div class="product-name-text">
+                <div class="action-buttons">
 
-                                    <strong>
-                                        ${escapeHTML(
-                                            supplier.name
-                                        )}
-                                    </strong>
+                    <button
+                        class="small edit"
+                        data-action="edit-supplier"
+                        data-id="${s.supplier_id}"
+                    >
+                        Edit
+                    </button>
 
-                                    <span>
-                                        Supplier
-                                    </span>
+                    <button
+                        class="small delete"
+                        data-action="delete-supplier"
+                        data-id="${s.supplier_id}"
+                    >
+                        Delete
+                    </button>
 
-                                </div>
+                </div>
 
-                            </div>
+            </td>
 
-                        </td>
+        </tr>
 
-
-                        <td>
-                            ${escapeHTML(
-                                supplier.phone ||
-                                "—"
-                            )}
-                        </td>
+    `).join("");
+}
 
 
-                        <td>
-                            ${escapeHTML(
-                                supplier.email ||
-                                "—"
-                            )}
-                        </td>
+function updateSupplierDropdown() {
 
+    const select = document.getElementById("p-supplier");
 
-                        <td>
-
-                            <div class="action-buttons">
-
-                                <button
-                                    class="action-btn edit"
-                                    onclick="editSupplier(
-                                        ${supplier.supplier_id}
-                                    )"
-                                >
-                                    Edit
-                                </button>
-
-
-                                <button
-                                    class="action-btn delete"
-                                    onclick="deleteSupplier(
-                                        ${supplier.supplier_id}
-                                    )"
-                                >
-                                    Delete
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-                `
-            )
-            .join("");
-
+    select.innerHTML = `
+        <option value="">No supplier</option>
+        ${suppliersCache.map(s => `
+            <option value="${s.supplier_id}">
+                ${escapeHTML(s.name)}
+            </option>
+        `).join("")}
+    `;
 }
 
 
 // Supplier search
 
-document
-    .getElementById(
-        "supplier-search"
-    )
-    .addEventListener(
-        "input",
-        renderSuppliers
-    );
+document.getElementById("supplier-search-btn")
+    .addEventListener("click", () => {
+
+        currentSupplierSearch =
+            document.getElementById("supplier-search").value;
+
+        renderSuppliers();
+    });
 
 
-// ---------------------------------------------------------
-// SUPPLIER FORM
-// ---------------------------------------------------------
+document.getElementById("supplier-search")
+    .addEventListener("keydown", (event) => {
 
-document
-    .getElementById(
-        "supplier-form"
-    )
-    .addEventListener(
-        "submit",
-        async (event) => {
+        if (event.key === "Enter") {
 
             event.preventDefault();
 
+            currentSupplierSearch =
+                event.target.value;
 
-            const id =
-                document.getElementById(
-                    "supplier-id"
-                ).value;
-
-
-            const payload = {
-
-                name:
-                    document.getElementById(
-                        "s-name"
-                    ).value.trim(),
-
-                phone:
-                    document.getElementById(
-                        "s-phone"
-                    ).value.trim(),
-
-                email:
-                    document.getElementById(
-                        "s-email"
-                    ).value.trim()
-
-            };
-
-
-            try {
-
-                if (id) {
-
-                    await apiRequest(
-                        `/suppliers/${id}`,
-                        "PUT",
-                        payload
-                    );
-
-
-                    showToast(
-                        "Supplier updated successfully"
-                    );
-
-                } else {
-
-                    await apiRequest(
-                        "/suppliers",
-                        "POST",
-                        payload
-                    );
-
-
-                    showToast(
-                        "Supplier added successfully"
-                    );
-
-                }
-
-
-                cancelSupplierEdit();
-
-
-                await loadSuppliers();
-
-                await loadProducts();
-
-
-            } catch (error) {
-
-                showToast(
-                    error.message,
-                    "error"
-                );
-
-            }
-
+            renderSuppliers();
         }
-    );
+    });
 
 
-// ---------------------------------------------------------
-// EDIT SUPPLIER
-// ---------------------------------------------------------
+// Supplier form
 
-window.editSupplier =
-    function (id) {
+document.getElementById("supplier-form")
+    .addEventListener("submit", async (event) => {
 
-        const supplier =
-            suppliersCache.find(
-                (s) =>
-                    s.supplier_id === id
-            );
+        event.preventDefault();
 
+        const id =
+            document.getElementById("supplier-id").value;
 
-        if (!supplier) return;
+        const payload = {
 
+            name:
+                document.getElementById("s-name").value.trim(),
 
-        document.getElementById(
-            "supplier-id"
-        ).value =
-            supplier.supplier_id;
+            phone:
+                document.getElementById("s-phone").value.trim(),
 
-
-        document.getElementById(
-            "s-name"
-        ).value =
-            supplier.name || "";
-
-
-        document.getElementById(
-            "s-phone"
-        ).value =
-            supplier.phone || "";
-
-
-        document.getElementById(
-            "s-email"
-        ).value =
-            supplier.email || "";
-
-
-        document.getElementById(
-            "supplier-submit-text"
-        ).textContent =
-            "Update Supplier";
-
-
-        document.getElementById(
-            "supplier-submit-icon"
-        ).textContent =
-            "✓";
-
-
-        document.getElementById(
-            "supplier-cancel-btn"
-        ).classList.remove(
-            "hidden"
-        );
-
-
-        document
-            .getElementById("s-name")
-            .focus();
-
-    };
-
-
-// ---------------------------------------------------------
-// CANCEL SUPPLIER
-// ---------------------------------------------------------
-
-window.cancelSupplierEdit =
-    function () {
-
-        document
-            .getElementById(
-                "supplier-form"
-            )
-            .reset();
-
-
-        document.getElementById(
-            "supplier-id"
-        ).value = "";
-
-
-        document.getElementById(
-            "supplier-submit-text"
-        ).textContent =
-            "Save Supplier";
-
-
-        document.getElementById(
-            "supplier-submit-icon"
-        ).textContent =
-            "+";
-
-
-        document.getElementById(
-            "supplier-cancel-btn"
-        ).classList.add(
-            "hidden"
-        );
-
-    };
-
-
-// ---------------------------------------------------------
-// FOCUS SUPPLIER FORM
-// ---------------------------------------------------------
-
-window.focusSupplierForm =
-    function () {
-
-        document
-            .getElementById(
-                "s-name"
-            )
-            .focus();
-
-    };
-
-
-// ---------------------------------------------------------
-// DELETE SUPPLIER
-// ---------------------------------------------------------
-
-window.deleteSupplier =
-    async function (id) {
-
-        if (
-            !confirm(
-                "Delete this supplier?"
-            )
-        ) {
-            return;
-        }
+            email:
+                document.getElementById("s-email").value.trim()
+        };
 
 
         try {
 
-            await apiRequest(
-                `/suppliers/${id}`,
-                "DELETE"
-            );
+            if (id) {
+
+                await apiRequest(
+                    `/suppliers/${id}`,
+                    "PUT",
+                    payload
+                );
+
+                showToast("Supplier updated successfully.");
+
+            } else {
+
+                await apiRequest(
+                    "/suppliers",
+                    "POST",
+                    payload
+                );
+
+                showToast("Supplier added successfully.");
+            }
 
 
-            showToast(
-                "Supplier deleted successfully"
-            );
-
+            resetSupplierForm();
 
             await loadSuppliers();
 
-            await loadProducts();
-
-
         } catch (error) {
 
-            showToast(
-                error.message,
-                "error"
-            );
-
+            showToast(getErrorMessage(error), "error");
         }
+    });
 
-    };
 
+// Edit supplier
 
-// =========================================================
-// PRODUCTS
-// =========================================================
+function editSupplier(id) {
 
-async function loadProducts() {
-
-    productsCache =
-        await apiRequest(
-            "/products"
+    const supplier =
+        suppliersCache.find(
+            s => Number(s.supplier_id) === Number(id)
         );
 
+    if (!supplier) return;
 
-    renderProducts();
 
-    renderSaleProductOptions();
+    document.getElementById("supplier-id").value =
+        supplier.supplier_id;
 
+    document.getElementById("s-name").value =
+        supplier.name || "";
+
+    document.getElementById("s-phone").value =
+        supplier.phone || "";
+
+    document.getElementById("s-email").value =
+        supplier.email || "";
+
+
+    document.getElementById("supplier-form-title")
+        .textContent = "Edit Supplier";
+
+    document.getElementById("supplier-submit-text")
+        .textContent = "Update Supplier";
+
+    document.getElementById("supplier-submit-icon")
+        .textContent = "✓";
+
+    document.getElementById("supplier-cancel-btn")
+        .classList.remove("hidden");
 }
 
 
-// ---------------------------------------------------------
-// RENDER PRODUCTS
-// ---------------------------------------------------------
+// Delete supplier
 
-function renderProducts() {
+async function deleteSupplier(id) {
 
-    const search =
-        document
-            .getElementById(
-                "product-search"
-            )
-            .value
-            .toLowerCase()
-            .trim();
-
-
-    const filtered =
-        productsCache.filter(
-            (product) => {
-
-                const supplier =
-                    suppliersCache.find(
-                        (s) =>
-                            s.supplier_id ===
-                            product.supplier_id
-                    );
-
-
-                return (
-
-                    String(
-                        product.product_id
-                    ).includes(search)
-
-                    ||
-
-                    (product.name || "")
-                        .toLowerCase()
-                        .includes(search)
-
-                    ||
-
-                    (product.category || "")
-                        .toLowerCase()
-                        .includes(search)
-
-                    ||
-
-                    (supplier?.name || "")
-                        .toLowerCase()
-                        .includes(search)
-
-                );
-
-            }
-        );
-
-
-    document.getElementById(
-        "product-count"
-    ).textContent =
-        `${productsCache.length} product${
-            productsCache.length !== 1
-                ? "s"
-                : ""
-        }`;
-
-
-    const tbody =
-        document.querySelector(
-            "#products-table tbody"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "products-empty"
-        );
-
-
-    if (filtered.length === 0) {
-
-        tbody.innerHTML = "";
-
-        empty.classList.remove(
-            "hidden"
-        );
-
+    if (!confirm("Delete this supplier?")) {
         return;
-
     }
 
 
-    empty.classList.add(
-        "hidden"
-    );
+    try {
 
+        await apiRequest(
+            `/suppliers/${id}`,
+            "DELETE"
+        );
 
-    tbody.innerHTML =
-        filtered
-            .map(
-                (product) => {
+        showToast("Supplier deleted successfully.");
 
-                    const supplier =
-                        suppliersCache.find(
-                            (s) =>
-                                s.supplier_id ===
-                                product.supplier_id
-                        );
+        await Promise.all([
+            loadSuppliers(),
+            loadProducts(1, currentProductSearch)
+        ]);
 
+    } catch (error) {
 
-                    let stockClass =
-                        "stock-good";
-
-
-                    let stockText =
-                        "In stock";
-
-
-                    if (
-                        product.quantity <= 0
-                    ) {
-
-                        stockClass =
-                            "stock-out";
-
-                        stockText =
-                            "Out of stock";
-
-                    } else if (
-                        product.low_stock
-                    ) {
-
-                        stockClass =
-                            "stock-low";
-
-                        stockText =
-                            "Low stock";
-
-                    }
-
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                #${product.product_id}
-                            </td>
-
-
-                            <td>
-
-                                <div class="product-name-cell">
-
-                                    <div class="product-mini-icon">
-                                        ${escapeHTML(
-                                            (
-                                                product.name ||
-                                                "P"
-                                            )
-                                                .charAt(0)
-                                                .toUpperCase()
-                                        )}
-                                    </div>
-
-
-                                    <div class="product-name-text">
-
-                                        <strong>
-                                            ${escapeHTML(
-                                                product.name
-                                            )}
-                                        </strong>
-
-                                        <span>
-                                            Product ID
-                                            #${product.product_id}
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                            </td>
-
-
-                            <td>
-                                ${escapeHTML(
-                                    product.category ||
-                                    "Uncategorized"
-                                )}
-                            </td>
-
-
-                            <td>
-                                <strong>
-                                    ₹${Number(
-                                        product.price ||
-                                        0
-                                    ).toFixed(2)}
-                                </strong>
-                            </td>
-
-
-                            <td>
-
-                                <span
-                                    class="stock-badge ${stockClass}"
-                                >
-                                    ${product.quantity}
-                                    ·
-                                    ${stockText}
-                                </span>
-
-                            </td>
-
-
-                            <td>
-                                ${escapeHTML(
-                                    supplier?.name ||
-                                    "—"
-                                )}
-                            </td>
-
-
-                            <td>
-
-                                <div class="action-buttons">
-
-                                    <button
-                                        class="action-btn edit"
-                                        onclick="editProduct(
-                                            ${product.product_id}
-                                        )"
-                                    >
-                                        Edit
-                                    </button>
-
-
-                                    <button
-                                        class="action-btn delete"
-                                        onclick="deleteProduct(
-                                            ${product.product_id}
-                                        )"
-                                    >
-                                        Delete
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            )
-            .join("");
-
+        showToast(getErrorMessage(error), "error");
+    }
 }
+
+
+// Reset supplier form
+
+function resetSupplierForm() {
+
+    document.getElementById("supplier-form").reset();
+
+    document.getElementById("supplier-id").value = "";
+
+    document.getElementById("supplier-form-title")
+        .textContent = "Add Supplier";
+
+    document.getElementById("supplier-submit-text")
+        .textContent = "Add Supplier";
+
+    document.getElementById("supplier-submit-icon")
+        .textContent = "＋";
+
+    document.getElementById("supplier-cancel-btn")
+        .classList.add("hidden");
+}
+
+
+document.getElementById("supplier-cancel-btn")
+    .addEventListener("click", resetSupplierForm);
+
+
+// Supplier table event delegation
+
+document.querySelector("#suppliers-table tbody")
+    .addEventListener("click", (event) => {
+
+        const button =
+            event.target.closest("button[data-action]");
+
+        if (!button) return;
+
+        const id = Number(button.dataset.id);
+        const action = button.dataset.action;
+
+        if (action === "edit-supplier") {
+            editSupplier(id);
+        }
+
+        if (action === "delete-supplier") {
+            deleteSupplier(id);
+        }
+    });
+
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+
+async function loadProducts(page = 1, search = "") {
+
+    try {
+
+        currentProductPage = page;
+        currentProductSearch = search;
+
+
+        const query =
+            new URLSearchParams({
+                page: page,
+                limit: pageSize,
+                search: search
+            }).toString();
+
+
+        const data =
+            await apiRequest(`/products?${query}`);
+
+
+        productsCache = data.items || [];
+
+
+        renderProducts(data);
+
+
+    } catch (error) {
+
+        showToast(getErrorMessage(error), "error");
+    }
+}
+
+
+function renderProducts(data) {
+
+    const tbody =
+        document.querySelector("#products-table tbody");
+
+    const emptyState =
+        document.getElementById("products-empty");
+
+
+    const products =
+        data.items || [];
+
+
+    document.getElementById("product-count").textContent =
+        `${data.total || products.length} product${(data.total || products.length) !== 1 ? "s" : ""}`;
+
+
+    if (!products.length) {
+
+        tbody.innerHTML = "";
+        emptyState.classList.remove("hidden");
+
+    } else {
+
+        emptyState.classList.add("hidden");
+
+
+        tbody.innerHTML = products.map(p => {
+
+            const supplier =
+                suppliersCache.find(
+                    s =>
+                        Number(s.supplier_id) ===
+                        Number(p.supplier_id)
+                );
+
+
+            const lowStock =
+                Boolean(p.low_stock);
+
+
+            return `
+
+                <tr class="${lowStock ? "low-stock-row" : ""}">
+
+                    <td>#${p.product_id}</td>
+
+                    <td>
+                        <div class="table-primary">
+                            ${escapeHTML(p.name)}
+                        </div>
+                    </td>
+
+                    <td>
+                        ${escapeHTML(p.category || "-")}
+                    </td>
+
+                    <td>
+                        ${formatCurrency(p.price)}
+                    </td>
+
+                    <td>
+                        <strong>${p.quantity}</strong>
+                    </td>
+
+                    <td>
+                        ${escapeHTML(supplier?.name || "-")}
+                    </td>
+
+                    <td>
+
+                        <span class="status-badge ${lowStock ? "status-low" : "status-good"}">
+                            ${lowStock ? "Low Stock" : "In Stock"}
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <div class="action-buttons">
+
+                            <button
+                                class="small edit"
+                                data-action="edit-product"
+                                data-id="${p.product_id}"
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                class="small delete"
+                                data-action="delete-product"
+                                data-id="${p.product_id}"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+    }
+
+
+    renderPagination(data);
+}
+
+
+// Pagination
+
+function renderPagination(data) {
+
+    const container =
+        document.getElementById("products-pagination");
+
+
+    const pages =
+        Number(data.pages || 1);
+
+    const current =
+        Number(data.page || currentProductPage);
+
+
+    if (pages <= 1) {
+
+        container.innerHTML = "";
+        return;
+    }
+
+
+    let html = "";
+
+
+    html += `
+        <button
+            class="page-btn"
+            ${current === 1 ? "disabled" : ""}
+            data-page="${current - 1}"
+        >
+            ‹
+        </button>
+    `;
+
+
+    for (let i = 1; i <= pages; i++) {
+
+        html += `
+            <button
+                class="page-btn ${i === current ? "active" : ""}"
+                data-page="${i}"
+            >
+                ${i}
+            </button>
+        `;
+    }
+
+
+    html += `
+        <button
+            class="page-btn"
+            ${current === pages ? "disabled" : ""}
+            data-page="${current + 1}"
+        >
+            ›
+        </button>
+    `;
+
+
+    container.innerHTML = html;
+}
+
+
+document.getElementById("products-pagination")
+    .addEventListener("click", (event) => {
+
+        const button =
+            event.target.closest(".page-btn");
+
+        if (!button || button.disabled) return;
+
+        const page =
+            Number(button.dataset.page);
+
+        loadProducts(
+            page,
+            document.getElementById("product-search").value
+        );
+    });
 
 
 // Product search
 
-document
-    .getElementById(
-        "product-search"
-    )
-    .addEventListener(
-        "input",
-        renderProducts
-    );
+document.getElementById("search-btn")
+    .addEventListener("click", () => {
+
+        const search =
+            document.getElementById("product-search").value.trim();
+
+        loadProducts(1, search);
+    });
 
 
-// ---------------------------------------------------------
-// PRODUCT FORM
-// ---------------------------------------------------------
+document.getElementById("product-search")
+    .addEventListener("keydown", (event) => {
 
-document
-    .getElementById(
-        "product-form"
-    )
-    .addEventListener(
-        "submit",
-        async (event) => {
+        if (event.key === "Enter") {
 
             event.preventDefault();
 
-
-            const id =
-                document.getElementById(
-                    "product-id"
-                ).value;
-
-
-            const payload = {
-
-                name:
-                    document.getElementById(
-                        "p-name"
-                    ).value.trim(),
-
-                category:
-                    document.getElementById(
-                        "p-category"
-                    ).value.trim(),
-
-                price:
-                    parseFloat(
-                        document.getElementById(
-                            "p-price"
-                        ).value
-                    ),
-
-                quantity:
-                    parseInt(
-                        document.getElementById(
-                            "p-quantity"
-                        ).value,
-                        10
-                    ),
-
-                supplier_id:
-                    document.getElementById(
-                        "p-supplier"
-                    ).value || null
-
-            };
-
-
-            try {
-
-                if (id) {
-
-                    await apiRequest(
-                        `/products/${id}`,
-                        "PUT",
-                        payload
-                    );
-
-
-                    showToast(
-                        "Product updated successfully"
-                    );
-
-                } else {
-
-                    await apiRequest(
-                        "/products",
-                        "POST",
-                        payload
-                    );
-
-
-                    showToast(
-                        "Product added successfully"
-                    );
-
-                }
-
-
-                cancelProductEdit();
-
-
-                await loadProducts();
-
-                await loadSummary();
-
-
-            } catch (error) {
-
-                showToast(
-                    error.message,
-                    "error"
-                );
-
-            }
-
-        }
-    );
-
-
-// ---------------------------------------------------------
-// EDIT PRODUCT
-// ---------------------------------------------------------
-
-window.editProduct =
-    function (id) {
-
-        const product =
-            productsCache.find(
-                (p) =>
-                    p.product_id === id
+            loadProducts(
+                1,
+                event.target.value.trim()
             );
+        }
+    });
 
 
-        if (!product) return;
+// Product form
+
+document.getElementById("product-form")
+    .addEventListener("submit", async (event) => {
+
+        event.preventDefault();
 
 
-        document.getElementById(
-            "product-id"
-        ).value =
-            product.product_id;
+        const id =
+            document.getElementById("product-id").value;
 
 
-        document.getElementById(
-            "p-name"
-        ).value =
-            product.name || "";
+        const payload = {
 
+            name:
+                document.getElementById("p-name").value.trim(),
 
-        document.getElementById(
-            "p-category"
-        ).value =
-            product.category || "";
+            category:
+                document.getElementById("p-category").value.trim(),
 
+            price:
+                parseFloat(
+                    document.getElementById("p-price").value
+                ),
 
-        document.getElementById(
-            "p-price"
-        ).value =
-            product.price;
+            quantity:
+                parseInt(
+                    document.getElementById("p-quantity").value,
+                    10
+                ),
 
+            supplier_id:
+                document.getElementById("p-supplier").value
+                    ? parseInt(
+                        document.getElementById("p-supplier").value,
+                        10
+                    )
+                    : null
+        };
 
-        document.getElementById(
-            "p-quantity"
-        ).value =
-            product.quantity;
-
-
-        document.getElementById(
-            "p-supplier"
-        ).value =
-            product.supplier_id || "";
-
-
-        document.getElementById(
-            "product-submit-text"
-        ).textContent =
-            "Update Product";
-
-
-        document.getElementById(
-            "product-submit-icon"
-        ).textContent =
-            "✓";
-
-
-        document.getElementById(
-            "product-cancel-btn"
-        ).classList.remove(
-            "hidden"
-        );
-
-
-        document
-            .getElementById("p-name")
-            .focus();
-
-    };
-
-
-// ---------------------------------------------------------
-// CANCEL PRODUCT
-// ---------------------------------------------------------
-
-window.cancelProductEdit =
-    function () {
-
-        document
-            .getElementById(
-                "product-form"
-            )
-            .reset();
-
-
-        document.getElementById(
-            "product-id"
-        ).value = "";
-
-
-        document.getElementById(
-            "product-submit-text"
-        ).textContent =
-            "Save Product";
-
-
-        document.getElementById(
-            "product-submit-icon"
-        ).textContent =
-            "+";
-
-
-        document.getElementById(
-            "product-cancel-btn"
-        ).classList.add(
-            "hidden"
-        );
-
-    };
-
-
-// ---------------------------------------------------------
-// FOCUS PRODUCT FORM
-// ---------------------------------------------------------
-
-window.focusProductForm =
-    function () {
-
-        document
-            .getElementById(
-                "p-name"
-            )
-            .focus();
-
-    };
-
-
-// ---------------------------------------------------------
-// DELETE PRODUCT
-// ---------------------------------------------------------
-
-window.deleteProduct =
-    async function (id) {
 
         if (
-            !confirm(
-                "Delete this product?"
-            )
+            !payload.name ||
+            Number.isNaN(payload.price) ||
+            Number.isNaN(payload.quantity)
         ) {
+
+            showToast(
+                "Please enter valid product details.",
+                "error"
+            );
+
             return;
         }
 
 
         try {
 
-            await apiRequest(
-                `/products/${id}`,
-                "DELETE"
-            );
+            if (id) {
 
-
-            showToast(
-                "Product deleted successfully"
-            );
-
-
-            await loadProducts();
-
-            await loadSummary();
-
-
-        } catch (error) {
-
-            showToast(
-                error.message,
-                "error"
-            );
-
-        }
-
-    };
-
-
-// =========================================================
-// SALE PRODUCT SELECT
-// =========================================================
-
-function renderSaleProductOptions() {
-
-    const select =
-        document.getElementById(
-            "sale-product"
-        );
-
-
-    const availableProducts =
-        productsCache.filter(
-            (product) =>
-                product.quantity > 0
-        );
-
-
-    if (
-        availableProducts.length === 0
-    ) {
-
-        select.innerHTML =
-            `<option value="">
-                No products in stock
-            </option>`;
-
-        return;
-
-    }
-
-
-    select.innerHTML =
-        `<option value="">
-            Select a product
-        </option>` +
-        availableProducts
-            .map(
-                (product) => `
-
-                    <option
-                        value="${product.product_id}"
-                    >
-                        ${escapeHTML(
-                            product.name
-                        )}
-                        —
-                        ₹${Number(
-                            product.price || 0
-                        ).toFixed(2)}
-                        · Stock
-                        ${product.quantity}
-                    </option>
-
-                `
-            )
-            .join("");
-
-}
-
-
-// =========================================================
-// ADD SALE ITEM
-// =========================================================
-
-document
-    .getElementById(
-        "add-item-btn"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            const productId =
-                parseInt(
-                    document.getElementById(
-                        "sale-product"
-                    ).value,
-                    10
+                await apiRequest(
+                    `/products/${id}`,
+                    "PUT",
+                    payload
                 );
 
-
-            const quantity =
-                parseInt(
-                    document.getElementById(
-                        "sale-qty"
-                    ).value,
-                    10
-                );
-
-
-            const product =
-                productsCache.find(
-                    (p) =>
-                        p.product_id ===
-                        productId
-                );
-
-
-            if (!product) {
-
-                showToast(
-                    "Please select a product",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (
-                !quantity ||
-                quantity < 1
-            ) {
-
-                showToast(
-                    "Quantity must be at least 1",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            const existing =
-                currentSaleItems.find(
-                    (item) =>
-                        item.product_id ===
-                        productId
-                );
-
-
-            const totalQuantity =
-                existing
-                    ? existing.quantity +
-                      quantity
-                    : quantity;
-
-
-            if (
-                totalQuantity >
-                product.quantity
-            ) {
-
-                showToast(
-                    `Only ${product.quantity} units available`,
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (existing) {
-
-                existing.quantity =
-                    totalQuantity;
+                showToast("Product updated successfully.");
 
             } else {
 
-                currentSaleItems.push({
+                await apiRequest(
+                    "/products",
+                    "POST",
+                    payload
+                );
 
-                    product_id:
-                        productId,
-
-                    quantity:
-                        quantity,
-
-                    name:
-                        product.name,
-
-                    price:
-                        Number(
-                            product.price
-                        )
-
-                });
-
+                showToast("Product added successfully.");
             }
 
 
-            document.getElementById(
-                "sale-qty"
-            ).value = 1;
+            resetProductForm();
 
 
-            renderSaleItems();
+            await Promise.all([
+                loadProducts(currentProductPage, currentProductSearch),
+                loadAllProductsForSaleDropdown(),
+                loadSummary()
+            ]);
+
+        } catch (error) {
+
+            showToast(getErrorMessage(error), "error");
+        }
+    });
 
 
-            showToast(
-                "Item added to sale"
+// Edit product
+
+function editProduct(id) {
+
+    const product =
+        productsCache.find(
+            p =>
+                Number(p.product_id) ===
+                Number(id)
+        );
+
+
+    if (!product) return;
+
+
+    document.getElementById("product-id").value =
+        product.product_id;
+
+    document.getElementById("p-name").value =
+        product.name || "";
+
+    document.getElementById("p-category").value =
+        product.category || "";
+
+    document.getElementById("p-price").value =
+        product.price;
+
+    document.getElementById("p-quantity").value =
+        product.quantity;
+
+    document.getElementById("p-supplier").value =
+        product.supplier_id || "";
+
+
+    document.getElementById("product-form-title")
+        .textContent = "Edit Product";
+
+    document.getElementById("product-submit-text")
+        .textContent = "Update Product";
+
+    document.getElementById("product-submit-icon")
+        .textContent = "✓";
+
+    document.getElementById("product-cancel-btn")
+        .classList.remove("hidden");
+}
+
+
+// Delete product
+
+async function deleteProduct(id) {
+
+    if (!confirm("Delete this product?")) {
+        return;
+    }
+
+
+    try {
+
+        await apiRequest(
+            `/products/${id}`,
+            "DELETE"
+        );
+
+        showToast("Product deleted successfully.");
+
+
+        await Promise.all([
+            loadProducts(
+                currentProductPage,
+                currentProductSearch
+            ),
+            loadAllProductsForSaleDropdown(),
+            loadSummary()
+        ]);
+
+    } catch (error) {
+
+        showToast(getErrorMessage(error), "error");
+    }
+}
+
+
+// Reset product form
+
+function resetProductForm() {
+
+    document.getElementById("product-form").reset();
+
+    document.getElementById("product-id").value = "";
+
+    document.getElementById("product-form-title")
+        .textContent = "Add Product";
+
+    document.getElementById("product-submit-text")
+        .textContent = "Add Product";
+
+    document.getElementById("product-submit-icon")
+        .textContent = "＋";
+
+    document.getElementById("product-cancel-btn")
+        .classList.add("hidden");
+}
+
+
+document.getElementById("product-cancel-btn")
+    .addEventListener("click", resetProductForm);
+
+
+// Product table event delegation
+
+document.querySelector("#products-table tbody")
+    .addEventListener("click", (event) => {
+
+        const button =
+            event.target.closest("button[data-action]");
+
+        if (!button) return;
+
+        const id = Number(button.dataset.id);
+        const action = button.dataset.action;
+
+        if (action === "edit-product") {
+            editProduct(id);
+        }
+
+        if (action === "delete-product") {
+            deleteProduct(id);
+        }
+    });
+
+
+// ============================================================
+// FULL PRODUCT LIST FOR SALES DROPDOWN
+// ============================================================
+
+async function loadAllProductsForSaleDropdown() {
+
+    try {
+
+        const data =
+            await apiRequest("/products?limit=1000");
+
+
+        allProductsCache =
+            data.items || [];
+
+
+        const saleSelect =
+            document.getElementById("sale-product");
+
+
+        if (!allProductsCache.length) {
+
+            saleSelect.innerHTML =
+                `<option value="">No products available</option>`;
+
+            saleSelect.disabled = true;
+
+            return;
+        }
+
+
+        saleSelect.disabled = false;
+
+
+        saleSelect.innerHTML = allProductsCache.map(p => `
+
+            <option value="${p.product_id}">
+
+                ${escapeHTML(p.name)}
+                (stock: ${p.quantity})
+
+            </option>
+
+        `).join("");
+
+    } catch (error) {
+
+        showToast(
+            getErrorMessage(error),
+            "error"
+        );
+    }
+}
+
+
+// ============================================================
+// SALES
+// ============================================================
+
+document.getElementById("add-item-btn")
+    .addEventListener("click", () => {
+
+        const productId =
+            parseInt(
+                document.getElementById("sale-product").value,
+                10
             );
 
+
+        const quantity =
+            parseInt(
+                document.getElementById("sale-qty").value,
+                10
+            );
+
+
+        const product =
+            allProductsCache.find(
+                p =>
+                    Number(p.product_id) ===
+                    Number(productId)
+            );
+
+
+        if (!product) {
+
+            showToast(
+                "Please select a product.",
+                "error"
+            );
+
+            return;
         }
-    );
 
 
-// =========================================================
-// RENDER SALE ITEMS
-// =========================================================
+        if (!Number.isInteger(quantity) || quantity < 1) {
+
+            showToast(
+                "Quantity must be at least 1.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const existing =
+            currentSaleItems.find(
+                item =>
+                    Number(item.product_id) ===
+                    Number(productId)
+            );
+
+
+        const existingQuantity =
+            existing ? existing.quantity : 0;
+
+
+        if (
+            existingQuantity + quantity >
+            Number(product.quantity)
+        ) {
+
+            showToast(
+                `Only ${product.quantity} units of ${product.name} are available.`,
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (existing) {
+
+            existing.quantity += quantity;
+
+        } else {
+
+            currentSaleItems.push({
+
+                product_id: product.product_id,
+
+                quantity: quantity,
+
+                name: product.name,
+
+                price: Number(product.price)
+            });
+        }
+
+
+        renderSaleItems();
+
+
+        document.getElementById("sale-qty").value = 1;
+    });
+
 
 function renderSaleItems() {
 
     const list =
-        document.getElementById(
-            "sale-items-list"
-        );
+        document.getElementById("sale-items-list");
 
 
     const count =
-        document.getElementById(
-            "sale-item-count"
-        );
+        document.getElementById("sale-item-count");
 
 
-    const totalElement =
-        document.getElementById(
-            "sale-total"
-        );
+    const total =
+        document.getElementById("sale-total");
 
 
     count.textContent =
-        `${currentSaleItems.length} item${
-            currentSaleItems.length !== 1
-                ? "s"
-                : ""
-        }`;
+        `${currentSaleItems.length} item${currentSaleItems.length !== 1 ? "s" : ""}`;
 
 
-    if (
-        currentSaleItems.length === 0
-    ) {
+    if (!currentSaleItems.length) {
 
         list.innerHTML = `
+            <li class="sale-empty">
+                No items added yet.
+            </li>
+        `;
+
+        total.textContent = "₹0.00";
+
+        return;
+    }
+
+
+    list.innerHTML =
+        currentSaleItems.map((item, index) => `
 
             <li class="sale-item">
 
                 <div class="sale-item-info">
 
                     <strong>
-                        No items added yet
+                        ${escapeHTML(item.name)}
                     </strong>
 
                     <span>
-                        Select a product above
-                        to add it to this sale.
+                        ${formatCurrency(item.price)}
+                        × ${item.quantity}
                     </span>
 
                 </div>
 
+                <div class="sale-item-total">
+                    ${formatCurrency(item.price * item.quantity)}
+                </div>
+
+                <button
+                    type="button"
+                    class="remove-sale-item"
+                    data-index="${index}"
+                >
+                    ×
+                </button>
+
             </li>
 
-        `;
+        `).join("");
 
 
-        totalElement.textContent =
-            "₹0.00";
-
-
-        return;
-
-    }
-
-
-    list.innerHTML =
-        currentSaleItems
-            .map(
-                (item, index) => {
-
-                    const subtotal =
-                        item.price *
-                        item.quantity;
-
-
-                    return `
-
-                        <li class="sale-item">
-
-                            <div class="sale-item-info">
-
-                                <strong>
-                                    ${escapeHTML(
-                                        item.name
-                                    )}
-                                </strong>
-
-                                <span>
-                                    ₹${item.price.toFixed(2)}
-                                    ×
-                                    ${item.quantity}
-                                </span>
-
-                            </div>
-
-
-                            <div class="sale-item-right">
-
-                                <strong class="sale-item-price">
-                                    ₹${subtotal.toFixed(2)}
-                                </strong>
-
-
-                                <button
-                                    class="remove-item"
-                                    onclick="removeSaleItem(
-                                        ${index}
-                                    )"
-                                    title="Remove"
-                                >
-                                    ×
-                                </button>
-
-                            </div>
-
-                        </li>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-
-    const total =
+    const saleTotal =
         currentSaleItems.reduce(
             (sum, item) =>
                 sum +
-                item.price *
-                item.quantity,
+                (Number(item.price) * Number(item.quantity)),
             0
         );
 
 
-    totalElement.textContent =
-        `₹${total.toFixed(2)}`;
-
+    total.textContent =
+        formatCurrency(saleTotal);
 }
 
 
-// ---------------------------------------------------------
-// REMOVE SALE ITEM
-// ---------------------------------------------------------
+// Remove sale item
 
-window.removeSaleItem =
-    function (index) {
+document.getElementById("sale-items-list")
+    .addEventListener("click", (event) => {
 
-        currentSaleItems.splice(
-            index,
-            1
-        );
+        const button =
+            event.target.closest(".remove-sale-item");
 
+        if (!button) return;
+
+        const index =
+            Number(button.dataset.index);
+
+        currentSaleItems.splice(index, 1);
 
         renderSaleItems();
-
-    };
-
-
-// =========================================================
-// SUBMIT SALE
-// =========================================================
-
-document
-    .getElementById(
-        "submit-sale-btn"
-    )
-    .addEventListener(
-        "click",
-        async () => {
-
-            if (
-                currentSaleItems.length ===
-                0
-            ) {
-
-                showToast(
-                    "Add at least one item before completing the sale",
-                    "error"
-                );
-
-                return;
-
-            }
+    });
 
 
-            try {
+// Submit sale
 
-                await apiRequest(
-                    "/sales",
-                    "POST",
-                    {
-                        items:
-                            currentSaleItems.map(
-                                (item) => ({
-                                    product_id:
-                                        item.product_id,
+document.getElementById("submit-sale-btn")
+    .addEventListener("click", async () => {
 
-                                    quantity:
-                                        item.quantity
-                                })
-                            )
-                    }
-                );
+        if (!currentSaleItems.length) {
 
+            showToast(
+                "Add at least one item before completing the sale.",
+                "error"
+            );
 
-                currentSaleItems = [];
-
-
-                renderSaleItems();
-
-
-                showToast(
-                    "Sale completed successfully"
-                );
-
-
-                await loadProducts();
-
-                await loadSales();
-
-                await loadSummary();
-
-
-            } catch (error) {
-
-                showToast(
-                    error.message,
-                    "error"
-                );
-
-            }
-
+            return;
         }
-    );
 
 
-// =========================================================
+        try {
+
+            await apiRequest(
+                "/sales",
+                "POST",
+                {
+                    items:
+                        currentSaleItems.map(item => ({
+                            product_id: item.product_id,
+                            quantity: item.quantity
+                        }))
+                }
+            );
+
+
+            showToast("Sale recorded successfully.");
+
+
+            currentSaleItems = [];
+
+            renderSaleItems();
+
+
+            await Promise.all([
+                loadProducts(
+                    currentProductPage,
+                    currentProductSearch
+                ),
+                loadAllProductsForSaleDropdown(),
+                loadSales(),
+                loadSummary()
+            ]);
+
+        } catch (error) {
+
+            showToast(
+                getErrorMessage(error),
+                "error"
+            );
+        }
+    });
+
+
+// ============================================================
 // SALES HISTORY
-// =========================================================
+// ============================================================
 
 async function loadSales() {
 
-    salesCache =
-        await apiRequest(
-            "/sales"
+    try {
+
+        salesCache =
+            await apiRequest("/sales");
+
+
+        renderSales();
+
+    } catch (error) {
+
+        showToast(
+            getErrorMessage(error),
+            "error"
         );
-
-
-    renderSales();
-
+    }
 }
 
 
-// ---------------------------------------------------------
-// RENDER SALES
-// ---------------------------------------------------------
-
 function renderSales() {
 
+    const tbody =
+        document.querySelector("#sales-table tbody");
+
+    const emptyState =
+        document.getElementById("sales-empty");
+
+
     const search =
-        document
-            .getElementById(
-                "sales-search"
-            )
-            .value
-            .toLowerCase()
-            .trim();
+        currentSalesSearch.toLowerCase().trim();
 
 
     const filtered =
-        salesCache.filter(
-            (sale) => {
+        salesCache.filter(sale => {
 
-                const date =
-                    new Date(
-                        sale.date
-                    )
-                        .toLocaleString()
-                        .toLowerCase();
+            const id =
+                String(sale.sale_id || "").toLowerCase();
+
+            return id.includes(search);
+        });
 
 
-                return (
-
-                    String(
-                        sale.sale_id
-                    ).includes(search)
-
-                    ||
-
-                    date.includes(search)
-
-                );
-
-            }
-        );
-
-
-    const tbody =
-        document.querySelector(
-            "#sales-table tbody"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "sales-empty"
-        );
-
-
-    if (
-        filtered.length === 0
-    ) {
+    if (!filtered.length) {
 
         tbody.innerHTML = "";
 
-        empty.classList.remove(
-            "hidden"
-        );
+        emptyState.classList.remove("hidden");
 
         return;
-
     }
 
 
-    empty.classList.add(
-        "hidden"
-    );
+    emptyState.classList.add("hidden");
 
 
     tbody.innerHTML =
-        filtered
-            .map(
-                (sale) => `
+        filtered.map(s => `
 
-                    <tr>
+            <tr>
 
-                        <td>
-                            <strong>
-                                #${sale.sale_id}
-                            </strong>
-                        </td>
+                <td>#${s.sale_id}</td>
 
+                <td>
+                    ${new Date(s.date).toLocaleString()}
+                </td>
 
-                        <td>
-                            ${new Date(
-                                sale.date
-                            ).toLocaleString()}
-                        </td>
+                <td>
+                    <strong>
+                        ${formatCurrency(s.total_amount)}
+                    </strong>
+                </td>
 
+                <td>
+                    ${s.items && s.items.length
+                        ? s.items.map(i =>
+                            `${escapeHTML(
+                                i.name ||
+                                `Product #${i.product_id}`
+                            )} ×${i.quantity}`
+                        ).join(", ")
+                        : "-"
+                    }
+                </td>
 
-                        <td>
-                            <strong>
-                                ₹${Number(
-                                    sale.total_amount ||
-                                    0
-                                ).toFixed(2)}
-                            </strong>
-                        </td>
+            </tr>
 
-
-                        <td>
-
-                            ${
-                                Array.isArray(
-                                    sale.items
-                                )
-                                    ? sale.items
-                                        .map(
-                                            (item) => `
-                                                <span
-                                                    style="
-                                                        display:inline-block;
-                                                        background:#f1f5f9;
-                                                        border-radius:5px;
-                                                        padding:4px 7px;
-                                                        margin:2px;
-                                                        font-size:9px;
-                                                    "
-                                                >
-                                                    #${item.product_id}
-                                                    ×
-                                                    ${item.quantity}
-                                                </span>
-                                            `
-                                        )
-                                        .join("")
-                                    : "—"
-                            }
-
-                        </td>
-
-                    </tr>
-
-                `
-            )
-            .join("");
-
+        `).join("");
 }
 
 
 // Sales search
 
-document
-    .getElementById(
-        "sales-search"
-    )
-    .addEventListener(
-        "input",
-        renderSales
-    );
+document.getElementById("sales-search-btn")
+    .addEventListener("click", () => {
+
+        currentSalesSearch =
+            document.getElementById("sales-search").value;
+
+        renderSales();
+    });
 
 
-// =========================================================
-// HTML ESCAPE
-// =========================================================
+document.getElementById("sales-search")
+    .addEventListener("keydown", (event) => {
 
-function escapeHTML(value) {
+        if (event.key === "Enter") {
 
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
+            event.preventDefault();
+
+            currentSalesSearch =
+                event.target.value;
+
+            renderSales();
+        }
+    });
+
+
+// ============================================================
+// CSV EXPORT
+// ============================================================
+
+async function downloadCSV(path, filename) {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}${path}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization:
+                            `Bearer ${getToken()}`
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+
+            let message = "Export failed.";
+
+            try {
+
+                const data =
+                    await response.json();
+
+                message =
+                    data.error || message;
+
+            } catch (_) {}
+
+            throw new Error(message);
+        }
+
+
+        const blob =
+            await response.blob();
+
+
+        const url =
+            window.URL.createObjectURL(blob);
+
+
+        const link =
+            document.createElement("a");
+
+
+        link.href = url;
+        link.download = filename;
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+
+        window.URL.revokeObjectURL(url);
+
+
+        showToast(
+            `${filename} downloaded successfully.`
         );
 
+    } catch (error) {
+
+        showToast(
+            getErrorMessage(error),
+            "error"
+        );
+    }
 }
 
 
-// =========================================================
-// INITIAL LOAD
-// =========================================================
+// Product CSV
+
+document.getElementById("export-products-btn")
+    .addEventListener("click", () => {
+
+        downloadCSV(
+            "/dashboard/export/products",
+            "products_report.csv"
+        );
+    });
+
+
+// Sales CSV
+
+document.getElementById("export-sales-btn")
+    .addEventListener("click", () => {
+
+        downloadCSV(
+            "/dashboard/export/sales",
+            "sales_report.csv"
+        );
+    });
+
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
 
 (async function init() {
 
@@ -2175,7 +1598,12 @@ function escapeHTML(value) {
 
         await loadSuppliers();
 
-        await loadProducts();
+        await loadProducts(
+            1,
+            ""
+        );
+
+        await loadAllProductsForSaleDropdown();
 
         await loadSales();
 
@@ -2183,21 +1611,13 @@ function escapeHTML(value) {
 
         renderSaleItems();
 
-
     } catch (error) {
 
-        console.error(
-            "Dashboard initialization error:",
-            error
-        );
-
-
         showToast(
-            error.message ||
-            "Unable to load dashboard",
+            getErrorMessage(error),
             "error"
         );
-
     }
 
 })();
+
