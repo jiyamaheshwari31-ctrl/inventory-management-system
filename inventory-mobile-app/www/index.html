@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inventory & Sales — Login</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body class="login-body">
+
+<div class="login-page">
+
+    <div class="login-left">
+
+        <div class="login-brand">
+
+    <div class="brand-logo large">OTG</div>
+
+    <div class="brand-copy">
+        <h2>Organize. Track. Grow.</h2>
+        <span>Inventory management, simplified.</span>
+    </div>
+
+</div>
+
+
+        <div class="login-hero">
+
+            <span class="section-eyebrow">BUSINESS MANAGEMENT</span>
+
+            <h1>
+                Manage your inventory.
+                <span>Grow your business.</span>
+            </h1>
+
+            <p>
+                Track products, manage suppliers and record sales
+                from one simple dashboard.
+            </p>
+
+            <div class="feature-list">
+
+                <div class="feature">
+                    <span>✓</span>
+                    Real-time inventory tracking
+                </div>
+
+                <div class="feature">
+                    <span>✓</span>
+                    Supplier management
+                </div>
+
+                <div class="feature">
+                    <span>✓</span>
+                    Sales monitoring
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="login-right">
+
+        <div class="auth-box">
+
+            <div class="mobile-login-logo">
+    <div class="brand-logo large">OTG</div>
+</div>
+
+            <div class="auth-header">
+
+                <span class="section-eyebrow">WELCOME BACK</span>
+
+                <h1>Sign in</h1>
+
+                <p>
+                    Enter your credentials to access your dashboard.
+                </p>
+
+            </div>
+
+
+            <form id="login-form">
+
+                <div class="form-group">
+
+                    <label for="email">Email address</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="admin@shop.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="password">Password</label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button type="submit" class="login-btn">
+                    <span id="login-btn-text">Sign in</span>
+                    <span id="login-spinner" class="spinner hidden"></span>
+                </button>
+
+            </form>
+
+
+            <p id="error-msg" class="error"></p>
+
+
+            <div class="login-divider">
+                <span>Demo credentials</span>
+            </div>
+
+            <div class="demo-credentials">
+
+                <div>
+                    <span>Email</span>
+                    <strong>admin@shop.com</strong>
+                </div>
+
+                <div>
+                    <span>Password</span>
+                    <strong>Admin@123</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="js/api.js"></script>
+<script src="js/login.js"></script>
+
+</body>
+</html>
