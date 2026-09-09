@@ -178,7 +178,7 @@ document
 
 
 // ============================================================
-// LOW STOCK TICKER
+// PROFESSIONAL LOW STOCK TICKER
 // ============================================================
 
 function updateLowStockTicker(lowStockProducts) {
@@ -186,45 +186,95 @@ function updateLowStockTicker(lowStockProducts) {
     const alertBox =
         document.getElementById("low-stock-alert");
 
-    const content =
-        document.getElementById("low-stock-content");
+    const track =
+        document.getElementById("low-stock-track");
 
-    const contentCopy =
-        document.getElementById("low-stock-content-copy");
-
-    if (!alertBox || !content || !contentCopy) {
+    if (!alertBox || !track) {
         return;
     }
 
-    if (!lowStockProducts.length) {
+
+    /* ---------------------------------------------------------
+       No low-stock products
+    --------------------------------------------------------- */
+
+    if (!lowStockProducts || !lowStockProducts.length) {
 
         alertBox.classList.add("hidden");
 
-        content.innerHTML = "";
-        contentCopy.innerHTML = "";
+        track.innerHTML = "";
 
         return;
     }
 
-    const alertText =
-        `⚠ Low stock alert — ${lowStockProducts
-            .map(product =>
-                `${escapeHTML(product.name)} (${product.quantity} left)`
-            )
-            .join(" • ")}`;
+
+    /* ---------------------------------------------------------
+       Build product messages
+    --------------------------------------------------------- */
+
+    const itemsHTML = lowStockProducts
+        .map(product => {
+
+            const quantity =
+                Number(product.quantity || 0);
+
+            return `
+                <span class="low-stock-item">
+
+                    <span class="low-stock-product-name">
+                        ${escapeHTML(product.name)}
+                    </span>
+
+                    <span class="low-stock-quantity">
+                        ${quantity} left
+                    </span>
+
+                </span>
+
+                <span
+                    class="low-stock-separator"
+                    aria-hidden="true"
+                >
+                    •
+                </span>
+            `;
+
+        })
+        .join("");
+
 
     /*
-     * These classes are already supported by the ticker CSS
-     * inside dashboard.html.
+     * Create two identical copies.
+     *
+     * The second copy follows the first one continuously,
+     * allowing the ticker to loop without an empty gap.
      */
-    content.className = "low-stock-content";
-    contentCopy.className = "low-stock-content";
 
-    content.innerHTML = alertText;
-    contentCopy.innerHTML = alertText;
+    const tickerContent = `
+        <div class="low-stock-content">
+            ${itemsHTML}
+        </div>
+
+        <div
+            class="low-stock-content"
+            aria-hidden="true"
+        >
+            ${itemsHTML}
+        </div>
+    `;
+
+
+    track.innerHTML = tickerContent;
+
+
+    /* ---------------------------------------------------------
+       Show ticker
+    --------------------------------------------------------- */
 
     alertBox.classList.remove("hidden");
 }
+
+
 
 
 // ============================================================

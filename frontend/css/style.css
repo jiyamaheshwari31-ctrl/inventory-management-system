@@ -102,24 +102,71 @@ button {
     gap: 12px;
 }
 
+/* =========================================================
+   BRAND / LOGO
+========================================================= */
+
+.login-brand,
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .brand-logo {
     width: 40px;
     height: 40px;
+    flex-shrink: 0;
     border-radius: 11px;
-    background: var(--primary);
+
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        #587cff
+    );
+
     color: white;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     font-weight: 800;
-    font-size: 14px;
-    box-shadow: 0 8px 20px rgba(49, 94, 251, 0.25);
+    font-size: 11px;
+    letter-spacing: 0.8px;
+
+    box-shadow:
+        0 8px 20px rgba(49, 94, 251, 0.25),
+        inset 0 1px 0 rgba(255,255,255,0.18);
 }
 
 .brand-logo.large {
     width: 48px;
     height: 48px;
-    font-size: 15px;
+    font-size: 12px;
+}
+
+.brand-copy {
+    min-width: 0;
+}
+
+.login-brand h2,
+.sidebar-brand h2 {
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 750;
+    letter-spacing: -0.25px;
+    white-space: nowrap;
+}
+
+.login-brand span,
+.sidebar-brand span {
+    display: block;
+    margin-top: 4px;
+    color: #98a2b3;
+    font-size: 9px;
+    line-height: 1.3;
+    white-space: nowrap;
 }
 
 .login-brand h2,
@@ -1314,18 +1361,284 @@ tbody tr:hover {
    LOW STOCK MOVING ALERT
 ================================ */
 
+/* =========================================================
+   PROFESSIONAL LOW STOCK TICKER
+========================================================= */
+
 .low-stock-ticker {
     width: 100%;
-    overflow: hidden;
-    box-sizing: border-box;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+
     margin: 18px 0 24px;
-    padding: 11px 0;
-    border: 1px solid rgba(255, 170, 0, 0.25);
+
+    background: #fffaf0;
+    border: 1px solid #f4dfb3;
     border-radius: 10px;
-    background: rgba(255, 170, 0, 0.07);
-    color: #f5b942;
-    white-space: nowrap;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 2px 8px rgba(16, 24, 40, 0.03);
+
     position: relative;
+}
+
+
+/* ---------------------------------------------------------
+   FIXED LOW STOCK LABEL
+--------------------------------------------------------- */
+
+.low-stock-label {
+    height: 100%;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 0 17px;
+
+    background: #fff3d6;
+    border-right: 1px solid #f4dfb3;
+
+    color: #a15c00;
+
+    font-size: 9px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+}
+
+
+/* Warning icon */
+
+.low-stock-label-icon {
+    width: 22px;
+    height: 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #f59e0b;
+    color: white;
+
+    font-size: 11px;
+    font-weight: 900;
+
+    box-shadow:
+        0 3px 8px rgba(245, 158, 11, 0.2);
+}
+
+
+/* ---------------------------------------------------------
+   MOVING AREA
+--------------------------------------------------------- */
+
+.low-stock-viewport {
+    flex: 1;
+
+    min-width: 0;
+    height: 100%;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+
+    position: relative;
+}
+
+
+/* Subtle fade at edges */
+
+.low-stock-viewport::before,
+.low-stock-viewport::after {
+    content: "";
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+
+    width: 35px;
+
+    z-index: 2;
+
+    pointer-events: none;
+}
+
+.low-stock-viewport::before {
+    left: 0;
+
+    background:
+        linear-gradient(
+            to right,
+            #fffaf0,
+            rgba(255, 250, 240, 0)
+        );
+}
+
+.low-stock-viewport::after {
+    right: 0;
+
+    background:
+        linear-gradient(
+            to left,
+            #fffaf0,
+            rgba(255, 250, 240, 0)
+        );
+}
+
+
+/* ---------------------------------------------------------
+   MOVING TRACK
+--------------------------------------------------------- */
+
+.low-stock-track {
+    display: flex;
+    align-items: center;
+
+    width: max-content;
+
+    white-space: nowrap;
+
+    animation:
+        lowStockTicker 28s linear infinite;
+
+    will-change: transform;
+}
+
+
+/* Each complete ticker copy */
+
+.low-stock-content {
+    display: inline-flex;
+    align-items: center;
+
+    flex-shrink: 0;
+
+    padding-right: 70px;
+
+    color: #8a4b08;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    letter-spacing: 0.1px;
+}
+
+
+/* Product separator */
+
+.low-stock-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* Product name */
+
+.low-stock-product-name {
+    color: #5f3a08;
+    font-weight: 700;
+}
+
+
+/* Quantity */
+
+.low-stock-quantity {
+    color: #a15c00;
+    font-weight: 600;
+}
+
+
+/* Dot between products */
+
+.low-stock-separator {
+    margin: 0 18px;
+
+    color: #d7a85a;
+
+    font-size: 10px;
+}
+
+
+/* ---------------------------------------------------------
+   ANIMATION
+--------------------------------------------------------- */
+
+@keyframes lowStockTicker {
+
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+
+}
+
+
+/* Pause on hover */
+
+.low-stock-ticker:hover .low-stock-track {
+    animation-play-state: paused;
+}
+
+
+/* ---------------------------------------------------------
+   ACCESSIBILITY
+--------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .low-stock-track {
+        animation: none;
+        transform: none;
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+--------------------------------------------------------- */
+
+@media (max-width: 600px) {
+
+    .low-stock-ticker {
+        height: 42px;
+        margin: 14px 0 20px;
+    }
+
+    .low-stock-label {
+        padding: 0 11px;
+        gap: 6px;
+        font-size: 8px;
+    }
+
+    .low-stock-label-icon {
+        width: 19px;
+        height: 19px;
+        font-size: 10px;
+    }
+
+    .low-stock-content {
+        font-size: 10px;
+        padding-right: 50px;
+    }
+
+    .low-stock-separator {
+        margin: 0 12px;
+    }
+
 }
 
 .low-stock-track {
