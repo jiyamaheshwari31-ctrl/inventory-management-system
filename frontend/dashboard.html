@@ -21,7 +21,7 @@
 
             <div>
                 <h2>Inventory</h2>
-                <span>& Sales</span>
+                <span>Organized for business</span>
             </div>
         </div>
 
@@ -237,10 +237,66 @@
 
 
             <!-- LOW STOCK ALERT -->
-            <section
-                id="low-stock-alert"
-                class="alert-box hidden"
-            ></section>
+            <section id="low-stock-alert" class="low-stock-ticker hidden">
+    <div class="low-stock-track">
+        <span id="low-stock-content"></span>
+        <span id="low-stock-content-copy" aria-hidden="true"></span>
+    </div>
+</section>
+
+<!-- Professional moving low-stock ticker -->
+<style>
+    .low-stock-ticker {
+        width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+        margin: 18px 0 24px;
+        padding: 11px 0;
+        border: 1px solid rgba(245, 185, 66, 0.22);
+        border-radius: 10px;
+        background: rgba(245, 185, 66, 0.06);
+        color: #f5b942;
+        white-space: nowrap;
+    }
+
+    .low-stock-track {
+        display: flex;
+        width: max-content;
+        min-width: max-content;
+        animation: lowStockScroll 24s linear infinite;
+        will-change: transform;
+    }
+
+    .low-stock-content {
+        display: inline-block;
+        flex-shrink: 0;
+        padding-right: 90px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.15px;
+    }
+
+    .low-stock-ticker:hover .low-stock-track {
+        animation-play-state: paused;
+    }
+
+    @keyframes lowStockScroll {
+        0% {
+            transform: translateX(100vw);
+        }
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .low-stock-track {
+            animation: none;
+            transform: none;
+            width: 100%;
+        }
+    }
+</style>
 
 
             <!-- =================================================
@@ -1012,4 +1068,3 @@
 
 </body>
 </html>
-

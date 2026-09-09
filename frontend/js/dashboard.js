@@ -85,11 +85,13 @@ function getErrorMessage(error) {
 
 function showToast(message, type = "success") {
 
-    const container =
-        document.getElementById("toast-container");
+    const container = document.getElementById("toast-container");
 
-    const toast =
-        document.createElement("div");
+    if (!container) {
+        return;
+    }
+
+    const toast = document.createElement("div");
 
     toast.className = `toast ${type}`;
 
@@ -136,26 +138,29 @@ document
 
         button.addEventListener("click", () => {
 
-            const tabName =
-                button.dataset.tab;
+            const tabName = button.dataset.tab;
 
             document
                 .querySelectorAll(".sidebar-link")
-                .forEach(btn =>
-                    btn.classList.remove("active")
-                );
+                .forEach(btn => {
+                    btn.classList.remove("active");
+                });
 
             document
                 .querySelectorAll(".tab-content")
-                .forEach(section =>
-                    section.classList.add("hidden")
-                );
+                .forEach(section => {
+                    section.classList.add("hidden");
+                });
 
             button.classList.add("active");
 
-            document
-                .getElementById(`tab-${tabName}`)
-                .classList.remove("hidden");
+            const section = document.getElementById(
+                `tab-${tabName}`
+            );
+
+            if (section) {
+                section.classList.remove("hidden");
+            }
 
             const titles = {
                 products: "Products",
@@ -163,17 +168,63 @@ document
                 sales: "Sales"
             };
 
-            document.getElementById(
-                "page-title"
-            ).textContent = titles[tabName];
+            document.getElementById("page-title").textContent =
+                titles[tabName];
 
-            document.getElementById(
-                "current-section"
-            ).textContent = titles[tabName];
-
+            document.getElementById("current-section").textContent =
+                titles[tabName];
         });
-
     });
+
+
+// ============================================================
+// LOW STOCK TICKER
+// ============================================================
+
+function updateLowStockTicker(lowStockProducts) {
+
+    const alertBox =
+        document.getElementById("low-stock-alert");
+
+    const content =
+        document.getElementById("low-stock-content");
+
+    const contentCopy =
+        document.getElementById("low-stock-content-copy");
+
+    if (!alertBox || !content || !contentCopy) {
+        return;
+    }
+
+    if (!lowStockProducts.length) {
+
+        alertBox.classList.add("hidden");
+
+        content.innerHTML = "";
+        contentCopy.innerHTML = "";
+
+        return;
+    }
+
+    const alertText =
+        `⚠ Low stock alert — ${lowStockProducts
+            .map(product =>
+                `${escapeHTML(product.name)} (${product.quantity} left)`
+            )
+            .join(" • ")}`;
+
+    /*
+     * These classes are already supported by the ticker CSS
+     * inside dashboard.html.
+     */
+    content.className = "low-stock-content";
+    contentCopy.className = "low-stock-content";
+
+    content.innerHTML = alertText;
+    contentCopy.innerHTML = alertText;
+
+    alertBox.classList.remove("hidden");
+}
 
 
 // ============================================================
@@ -200,9 +251,7 @@ async function loadSummary() {
             data.low_stock_products || [];
 
 
-        document.getElementById(
-            "summary-cards"
-        ).innerHTML = `
+        document.getElementById("summary-cards").innerHTML = `
 
             <div class="summary-card">
 
@@ -306,48 +355,7 @@ async function loadSummary() {
         `;
 
 
-        const alertBox =
-            document.getElementById(
-                "low-stock-alert"
-            );
-
-
-        if (lowStockProducts.length > 0) {
-
-            alertBox.classList.remove("hidden");
-
-            alertBox.innerHTML = `
-
-                <div class="alert-icon">
-                    !
-                </div>
-
-                <div>
-
-                    <strong>
-                        Low stock alert
-                    </strong>
-
-                    <span>
-                        ${lowStockProducts
-                            .map(p =>
-                                `${escapeHTML(p.name)}
-                                 (${p.quantity} left)`
-                            )
-                            .join(", ")
-                        }
-                    </span>
-
-                </div>
-
-            `;
-
-        } else {
-
-            alertBox.classList.add("hidden");
-            alertBox.innerHTML = "";
-
-        }
+        updateLowStockTicker(lowStockProducts);
 
     } catch (error) {
 
@@ -355,7 +363,6 @@ async function loadSummary() {
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
@@ -380,7 +387,6 @@ async function loadSuppliers() {
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
@@ -388,14 +394,10 @@ async function loadSuppliers() {
 function renderSuppliers() {
 
     const tbody =
-        document.querySelector(
-            "#suppliers-table tbody"
-        );
+        document.querySelector("#suppliers-table tbody");
 
     const emptyState =
-        document.getElementById(
-            "suppliers-empty"
-        );
+        document.getElementById("suppliers-empty");
 
     const search =
         currentSupplierSearch
@@ -407,36 +409,28 @@ function renderSuppliers() {
         suppliersCache.filter(supplier => {
 
             const name =
-                String(
-                    supplier.name || ""
-                ).toLowerCase();
+                String(supplier.name || "")
+                    .toLowerCase();
 
             const phone =
-                String(
-                    supplier.phone || ""
-                ).toLowerCase();
+                String(supplier.phone || "")
+                    .toLowerCase();
 
             const email =
-                String(
-                    supplier.email || ""
-                ).toLowerCase();
+                String(supplier.email || "")
+                    .toLowerCase();
 
             return (
                 name.includes(search) ||
                 phone.includes(search) ||
                 email.includes(search)
             );
-
         });
 
 
-    document.getElementById(
-        "supplier-count"
-    ).textContent =
+    document.getElementById("supplier-count").textContent =
         `${filtered.length} supplier${
-            filtered.length !== 1
-                ? "s"
-                : ""
+            filtered.length !== 1 ? "s" : ""
         }`;
 
 
@@ -444,112 +438,104 @@ function renderSuppliers() {
 
         tbody.innerHTML = "";
 
-        emptyState.classList.remove(
-            "hidden"
-        );
+        emptyState.classList.remove("hidden");
 
         return;
     }
 
 
-    emptyState.classList.add(
-        "hidden"
-    );
+    emptyState.classList.add("hidden");
 
 
     tbody.innerHTML =
-        filtered.map(supplier => `
+        filtered
+            .map(supplier => `
 
-            <tr>
+                <tr>
 
-                <td>
-                    #${supplier.supplier_id}
-                </td>
+                    <td>
+                        #${supplier.supplier_id}
+                    </td>
 
+                    <td>
 
-                <td>
+                        <div class="product-name-cell">
 
-                    <div class="product-name-cell">
-
-                        <div class="product-mini-icon">
-                            ${escapeHTML(
-                                (supplier.name || "S")
-                                    .charAt(0)
-                                    .toUpperCase()
-                            )}
-                        </div>
-
-                        <div class="product-name-text">
-
-                            <strong>
+                            <div class="product-mini-icon">
                                 ${escapeHTML(
-                                    supplier.name
+                                    (supplier.name || "S")
+                                        .charAt(0)
+                                        .toUpperCase()
                                 )}
-                            </strong>
+                            </div>
 
-                            <span>
-                                Supplier
-                            </span>
+                            <div class="product-name-text">
+
+                                <strong>
+                                    ${escapeHTML(
+                                        supplier.name
+                                    )}
+                                </strong>
+
+                                <span>
+                                    Supplier
+                                </span>
+
+                            </div>
 
                         </div>
 
-                    </div>
+                    </td>
 
-                </td>
+                    <td>
+                        ${escapeHTML(
+                            supplier.phone || "—"
+                        )}
+                    </td>
 
+                    <td>
+                        ${escapeHTML(
+                            supplier.email || "—"
+                        )}
+                    </td>
 
-                <td>
-                    ${escapeHTML(
-                        supplier.phone || "—"
-                    )}
-                </td>
+                    <td>
 
+                        <div class="action-buttons">
 
-                <td>
-                    ${escapeHTML(
-                        supplier.email || "—"
-                    )}
-                </td>
+                            <button
+                                class="action-btn edit"
+                                data-action="edit-supplier"
+                                data-id="${supplier.supplier_id}"
+                                type="button"
+                            >
+                                Edit
+                            </button>
 
+                            <button
+                                class="action-btn delete"
+                                data-action="delete-supplier"
+                                data-id="${supplier.supplier_id}"
+                                type="button"
+                            >
+                                Delete
+                            </button>
 
-                <td>
+                        </div>
 
-                    <div class="action-buttons">
+                    </td>
 
-                        <button
-                            class="action-btn edit"
-                            data-action="edit-supplier"
-                            data-id="${supplier.supplier_id}"
-                            type="button"
-                        >
-                            Edit
-                        </button>
+                </tr>
 
-                        <button
-                            class="action-btn delete"
-                            data-action="delete-supplier"
-                            data-id="${supplier.supplier_id}"
-                            type="button"
-                        >
-                            Delete
-                        </button>
-
-                    </div>
-
-                </td>
-
-            </tr>
-
-        `).join("");
+            `)
+            .join("");
 }
 
 
 function updateSupplierDropdown() {
 
     const select =
-        document.getElementById(
-            "p-supplier"
-        );
+        document.getElementById("p-supplier");
 
     select.innerHTML = `
 
@@ -560,17 +546,12 @@ function updateSupplierDropdown() {
         ${suppliersCache
             .map(supplier => `
 
-                <option
-                    value="${supplier.supplier_id}"
-                >
-                    ${escapeHTML(
-                        supplier.name
-                    )}
+                <option value="${supplier.supplier_id}">
+                    ${escapeHTML(supplier.name)}
                 </option>
 
             `)
-            .join("")
-        }
+            .join("")}
 
     `;
 }
@@ -582,9 +563,9 @@ document
     .addEventListener("click", () => {
 
         currentSupplierSearch =
-            document.getElementById(
-                "supplier-search"
-            ).value;
+            document
+                .getElementById("supplier-search")
+                .value;
 
         renderSuppliers();
     });
@@ -603,107 +584,96 @@ document
 
             renderSuppliers();
         }
-
     });
 
 
 // Supplier form
 document
     .getElementById("supplier-form")
-    .addEventListener(
-        "submit",
-        async event => {
+    .addEventListener("submit", async event => {
 
-            event.preventDefault();
+        event.preventDefault();
 
+        const id =
+            document.getElementById("supplier-id").value;
 
-            const id =
-                document.getElementById(
-                    "supplier-id"
-                ).value;
+        const payload = {
 
+            name:
+                document.getElementById("s-name")
+                    .value
+                    .trim(),
 
-            const payload = {
+            phone:
+                document.getElementById("s-phone")
+                    .value
+                    .trim(),
 
-                name:
-                    document.getElementById(
-                        "s-name"
-                    ).value.trim(),
-
-                phone:
-                    document.getElementById(
-                        "s-phone"
-                    ).value.trim(),
-
-                email:
-                    document.getElementById(
-                        "s-email"
-                    ).value.trim()
-
-            };
+            email:
+                document.getElementById("s-email")
+                    .value
+                    .trim()
+        };
 
 
-            if (!payload.name) {
+        if (!payload.name) {
 
-                showToast(
-                    "Supplier name is required.",
-                    "error"
-                );
+            showToast(
+                "Supplier name is required.",
+                "error"
+            );
 
-                return;
-            }
-
-
-            try {
-
-                if (id) {
-
-                    await apiRequest(
-                        `/suppliers/${id}`,
-                        "PUT",
-                        payload
-                    );
-
-                    showToast(
-                        "Supplier updated successfully."
-                    );
-
-                } else {
-
-                    await apiRequest(
-                        "/suppliers",
-                        "POST",
-                        payload
-                    );
-
-                    showToast(
-                        "Supplier added successfully."
-                    );
-
-                }
-
-
-                resetSupplierForm();
-
-                await Promise.all([
-                    loadSuppliers(),
-                    loadProducts(
-                        currentProductPage,
-                        currentProductSearch
-                    )
-                ]);
-
-            } catch (error) {
-
-                showToast(
-                    getErrorMessage(error),
-                    "error"
-                );
-
-            }
-
+            return;
         }
-    );
+
+
+        try {
+
+            if (id) {
+
+                await apiRequest(
+                    `/suppliers/${id}`,
+                    "PUT",
+                    payload
+                );
+
+                showToast(
+                    "Supplier updated successfully."
+                );
+
+            } else {
+
+                await apiRequest(
+                    "/suppliers",
+                    "POST",
+                    payload
+                );
+
+                showToast(
+                    "Supplier added successfully."
+                );
+            }
+
+
+            resetSupplierForm();
+
+            await Promise.all([
+                loadSuppliers(),
+
+                loadProducts(
+                    currentProductPage,
+                    currentProductSearch
+                )
+            ]);
+
+        } catch (error) {
+
+            showToast(
+                getErrorMessage(error),
+                "error"
+            );
+        }
+    });
 
 
 // Edit supplier
@@ -716,73 +686,47 @@ function editSupplier(id) {
                 Number(id)
         );
 
-    if (!supplier) return;
+    if (!supplier) {
+        return;
+    }
 
 
-    document.getElementById(
-        "supplier-id"
-    ).value =
+    document.getElementById("supplier-id").value =
         supplier.supplier_id;
 
-
-    document.getElementById(
-        "s-name"
-    ).value =
+    document.getElementById("s-name").value =
         supplier.name || "";
 
-
-    document.getElementById(
-        "s-phone"
-    ).value =
+    document.getElementById("s-phone").value =
         supplier.phone || "";
 
-
-    document.getElementById(
-        "s-email"
-    ).value =
+    document.getElementById("s-email").value =
         supplier.email || "";
 
 
-    document.getElementById(
-        "supplier-form-title"
-    ).textContent =
+    document.getElementById("supplier-form-title").textContent =
         "Edit Supplier";
 
-
-    document.getElementById(
-        "supplier-submit-text"
-    ).textContent =
+    document.getElementById("supplier-submit-text").textContent =
         "Update Supplier";
 
-
-    document.getElementById(
-        "supplier-submit-icon"
-    ).textContent =
+    document.getElementById("supplier-submit-icon").textContent =
         "✓";
 
-
-    document.getElementById(
-        "supplier-cancel-btn"
-    ).classList.remove(
-        "hidden"
-    );
-
-
     document
-        .getElementById("s-name")
-        .focus();
+        .getElementById("supplier-cancel-btn")
+        .classList
+        .remove("hidden");
 
+
+    document.getElementById("s-name").focus();
 }
 
 
 // Delete supplier
 async function deleteSupplier(id) {
 
-    if (
-        !confirm(
-            "Delete this supplier?"
-        )
-    ) {
+    if (!confirm("Delete this supplier?")) {
         return;
     }
 
@@ -801,10 +745,13 @@ async function deleteSupplier(id) {
 
         await Promise.all([
             loadSuppliers(),
+
             loadProducts(
                 1,
                 currentProductSearch
-            )
+            ),
+
+            loadSummary()
         ]);
 
     } catch (error) {
@@ -813,7 +760,6 @@ async function deleteSupplier(id) {
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
@@ -825,41 +771,26 @@ function resetSupplierForm() {
         .getElementById("supplier-form")
         .reset();
 
-    document.getElementById(
-        "supplier-id"
-    ).value = "";
+    document.getElementById("supplier-id").value = "";
 
-
-    document.getElementById(
-        "supplier-form-title"
-    ).textContent =
+    document.getElementById("supplier-form-title").textContent =
         "Add Supplier";
 
-
-    document.getElementById(
-        "supplier-submit-text"
-    ).textContent =
+    document.getElementById("supplier-submit-text").textContent =
         "Add Supplier";
 
-
-    document.getElementById(
-        "supplier-submit-icon"
-    ).textContent =
+    document.getElementById("supplier-submit-icon").textContent =
         "＋";
 
-
-    document.getElementById(
-        "supplier-cancel-btn"
-    ).classList.add(
-        "hidden"
-    );
+    document
+        .getElementById("supplier-cancel-btn")
+        .classList
+        .add("hidden");
 }
 
 
 document
-    .getElementById(
-        "supplier-cancel-btn"
-    )
+    .getElementById("supplier-cancel-btn")
     .addEventListener(
         "click",
         resetSupplierForm
@@ -868,45 +799,33 @@ document
 
 // Supplier table events
 document
-    .querySelector(
-        "#suppliers-table tbody"
-    )
-    .addEventListener(
-        "click",
-        event => {
+    .querySelector("#suppliers-table tbody")
+    .addEventListener("click", event => {
 
-            const button =
-                event.target.closest(
-                    "button[data-action]"
-                );
+        const button =
+            event.target.closest(
+                "button[data-action]"
+            );
 
-            if (!button) return;
-
-
-            const id =
-                Number(button.dataset.id);
-
-            const action =
-                button.dataset.action;
-
-
-            if (
-                action ===
-                "edit-supplier"
-            ) {
-                editSupplier(id);
-            }
-
-
-            if (
-                action ===
-                "delete-supplier"
-            ) {
-                deleteSupplier(id);
-            }
-
+        if (!button) {
+            return;
         }
-    );
+
+        const id =
+            Number(button.dataset.id);
+
+        const action =
+            button.dataset.action;
+
+
+        if (action === "edit-supplier") {
+            editSupplier(id);
+        }
+
+        if (action === "delete-supplier") {
+            deleteSupplier(id);
+        }
+    });
 
 
 // ============================================================
@@ -926,13 +845,9 @@ async function loadProducts(
 
         const query =
             new URLSearchParams({
-
                 page: page,
-
                 limit: pageSize,
-
                 search: search
-
             }).toString();
 
 
@@ -945,9 +860,7 @@ async function loadProducts(
         productsCache =
             data.items || [];
 
-
         renderProducts(data);
-
 
     } catch (error) {
 
@@ -955,7 +868,6 @@ async function loadProducts(
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
@@ -969,10 +881,8 @@ async function loadAllProductsForSaleDropdown() {
                 "/products?limit=1000"
             );
 
-
         allProductsCache =
             data.items || [];
-
 
         renderSaleProductOptions();
 
@@ -982,7 +892,6 @@ async function loadAllProductsForSaleDropdown() {
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
@@ -990,19 +899,13 @@ async function loadAllProductsForSaleDropdown() {
 function renderProducts(data) {
 
     const tbody =
-        document.querySelector(
-            "#products-table tbody"
-        );
+        document.querySelector("#products-table tbody");
 
     const emptyState =
-        document.getElementById(
-            "products-empty"
-        );
-
+        document.getElementById("products-empty");
 
     const products =
         data.items || [];
-
 
     const total =
         Number(
@@ -1011,13 +914,9 @@ function renderProducts(data) {
         );
 
 
-    document.getElementById(
-        "product-count"
-    ).textContent =
+    document.getElementById("product-count").textContent =
         `${total} product${
-            total !== 1
-                ? "s"
-                : ""
+            total !== 1 ? "s" : ""
         }`;
 
 
@@ -1025,9 +924,7 @@ function renderProducts(data) {
 
         tbody.innerHTML = "";
 
-        emptyState.classList.remove(
-            "hidden"
-        );
+        emptyState.classList.remove("hidden");
 
         renderPagination({
             pages: 1,
@@ -1035,181 +932,152 @@ function renderProducts(data) {
         });
 
         return;
-
     }
 
 
-    emptyState.classList.add(
-        "hidden"
-    );
+    emptyState.classList.add("hidden");
 
 
     tbody.innerHTML =
-        products.map(product => {
+        products
+            .map(product => {
 
-            const supplier =
-                suppliersCache.find(
-                    s =>
-                        Number(
-                            s.supplier_id
-                        ) ===
-                        Number(
-                            product.supplier_id
-                        )
-                );
+                const supplier =
+                    suppliersCache.find(
+                        s =>
+                            Number(s.supplier_id) ===
+                            Number(product.supplier_id)
+                    );
 
 
-            let stockClass =
-                "stock-good";
-
-            let stockText =
-                "In stock";
+                let stockClass = "stock-good";
+                let stockText = "In stock";
 
 
-            if (
-                Number(
-                    product.quantity
-                ) <= 0
-            ) {
+                if (Number(product.quantity) <= 0) {
 
-                stockClass =
-                    "stock-out";
+                    stockClass = "stock-out";
+                    stockText = "Out of stock";
 
-                stockText =
-                    "Out of stock";
+                } else if (product.low_stock) {
 
-            } else if (
-                product.low_stock
-            ) {
-
-                stockClass =
-                    "stock-low";
-
-                stockText =
-                    "Low stock";
-
-            }
+                    stockClass = "stock-low";
+                    stockText = "Low stock";
+                }
 
 
-            return `
+                return `
 
-                <tr>
+                    <tr>
 
-                    <td>
-                        #${product.product_id}
-                    </td>
+                        <td>
+                            #${product.product_id}
+                        </td>
 
+                        <td>
 
-                    <td>
+                            <div class="product-name-cell">
 
-                        <div class="product-name-cell">
-
-                            <div class="product-mini-icon">
-                                ${escapeHTML(
-                                    (
-                                        product.name ||
-                                        "P"
-                                    )
-                                    .charAt(0)
-                                    .toUpperCase()
-                                )}
-                            </div>
-
-                            <div class="product-name-text">
-
-                                <strong>
+                                <div class="product-mini-icon">
                                     ${escapeHTML(
-                                        product.name
+                                        (
+                                            product.name ||
+                                            "P"
+                                        )
+                                            .charAt(0)
+                                            .toUpperCase()
                                     )}
-                                </strong>
+                                </div>
 
-                                <span>
-                                    Product #${product.product_id}
-                                </span>
+                                <div class="product-name-text">
+
+                                    <strong>
+                                        ${escapeHTML(
+                                            product.name
+                                        )}
+                                    </strong>
+
+                                    <span>
+                                        Product #${product.product_id}
+                                    </span>
+
+                                </div>
 
                             </div>
 
-                        </div>
+                        </td>
 
-                    </td>
-
-
-                    <td>
-                        ${escapeHTML(
-                            product.category ||
-                            "Uncategorized"
-                        )}
-                    </td>
-
-
-                    <td>
-                        <strong>
-                            ${formatCurrency(
-                                product.price
+                        <td>
+                            ${escapeHTML(
+                                product.category ||
+                                "Uncategorized"
                             )}
-                        </strong>
-                    </td>
+                        </td>
 
+                        <td>
+                            <strong>
+                                ${formatCurrency(
+                                    product.price
+                                )}
+                            </strong>
+                        </td>
 
-                    <td>
-                        <strong>
-                            ${product.quantity}
-                        </strong>
-                    </td>
+                        <td>
+                            <strong>
+                                ${product.quantity}
+                            </strong>
+                        </td>
 
+                        <td>
+                            ${escapeHTML(
+                                supplier?.name ||
+                                "—"
+                            )}
+                        </td>
 
-                    <td>
-                        ${escapeHTML(
-                            supplier?.name ||
-                            "—"
-                        )}
-                    </td>
+                        <td>
 
-
-                    <td>
-
-                        <span
-                            class="stock-badge ${stockClass}"
-                        >
-                            ${product.quantity}
-                            ·
-                            ${stockText}
-                        </span>
-
-                    </td>
-
-
-                    <td>
-
-                        <div class="action-buttons">
-
-                            <button
-                                type="button"
-                                class="action-btn edit"
-                                data-action="edit-product"
-                                data-id="${product.product_id}"
+                            <span
+                                class="stock-badge ${stockClass}"
                             >
-                                Edit
-                            </button>
+                                ${product.quantity}
+                                ·
+                                ${stockText}
+                            </span>
 
-                            <button
-                                type="button"
-                                class="action-btn delete"
-                                data-action="delete-product"
-                                data-id="${product.product_id}"
-                            >
-                                Delete
-                            </button>
+                        </td>
 
-                        </div>
+                        <td>
 
-                    </td>
+                            <div class="action-buttons">
 
-                </tr>
+                                <button
+                                    type="button"
+                                    class="action-btn edit"
+                                    data-action="edit-product"
+                                    data-id="${product.product_id}"
+                                >
+                                    Edit
+                                </button>
 
-            `;
+                                <button
+                                    type="button"
+                                    class="action-btn delete"
+                                    data-action="delete-product"
+                                    data-id="${product.product_id}"
+                                >
+                                    Delete
+                                </button>
 
-        }).join("");
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+            })
+            .join("");
 
 
     renderPagination(data);
@@ -1226,7 +1094,6 @@ function renderPagination(data) {
         document.getElementById(
             "products-pagination"
         );
-
 
     const pages =
         Number(data.pages || 1);
@@ -1246,10 +1113,7 @@ function renderPagination(data) {
     }
 
 
-    let html = "";
-
-
-    html += `
+    let html = `
 
         <button
             type="button"
@@ -1263,11 +1127,7 @@ function renderPagination(data) {
     `;
 
 
-    for (
-        let i = 1;
-        i <= pages;
-        i++
-    ) {
+    for (let i = 1; i <= pages; i++) {
 
         html += `
 
@@ -1284,7 +1144,6 @@ function renderPagination(data) {
             </button>
 
         `;
-
     }
 
 
@@ -1307,86 +1166,62 @@ function renderPagination(data) {
 
 
 document
-    .getElementById(
-        "products-pagination"
-    )
-    .addEventListener(
-        "click",
-        event => {
+    .getElementById("products-pagination")
+    .addEventListener("click", event => {
 
-            const button =
-                event.target.closest(
-                    "button[data-page]"
-                );
-
-            if (
-                !button ||
-                button.disabled
-            ) {
-                return;
-            }
-
-
-            const page =
-                Number(
-                    button.dataset.page
-                );
-
-
-            loadProducts(
-                page,
-                document.getElementById(
-                    "product-search"
-                ).value.trim()
+        const button =
+            event.target.closest(
+                "button[data-page]"
             );
 
+        if (!button || button.disabled) {
+            return;
         }
-    );
+
+
+        const page =
+            Number(button.dataset.page);
+
+
+        loadProducts(
+            page,
+            document
+                .getElementById("product-search")
+                .value
+                .trim()
+        );
+    });
 
 
 // Product search
 document
     .getElementById("search-btn")
-    .addEventListener(
-        "click",
-        () => {
+    .addEventListener("click", () => {
 
-            const search =
-                document.getElementById(
-                    "product-search"
-                ).value.trim();
+        const search =
+            document
+                .getElementById("product-search")
+                .value
+                .trim();
 
-
-            loadProducts(
-                1,
-                search
-            );
-
-        }
-    );
+        loadProducts(1, search);
+    });
 
 
 document
     .getElementById("product-search")
-    .addEventListener(
-        "keydown",
-        event => {
+    .addEventListener("keydown", event => {
 
-            if (
-                event.key === "Enter"
-            ) {
+        if (event.key === "Enter") {
 
-                event.preventDefault();
+            event.preventDefault();
 
-                loadProducts(
-                    1,
-                    event.target.value.trim()
-                );
-
-            }
-
+            loadProducts(
+                1,
+                event.target.value.trim()
+            );
         }
-    );
+    });
 
 
 // ============================================================
@@ -1395,138 +1230,126 @@ document
 
 document
     .getElementById("product-form")
-    .addEventListener(
-        "submit",
-        async event => {
+    .addEventListener("submit", async event => {
 
-            event.preventDefault();
+        event.preventDefault();
 
 
-            const id =
-                document.getElementById(
-                    "product-id"
-                ).value;
+        const id =
+            document.getElementById("product-id").value;
 
 
-            const payload = {
+        const payload = {
 
-                name:
-                    document.getElementById(
-                        "p-name"
-                    ).value.trim(),
+            name:
+                document
+                    .getElementById("p-name")
+                    .value
+                    .trim(),
 
-                category:
-                    document.getElementById(
-                        "p-category"
-                    ).value.trim(),
+            category:
+                document
+                    .getElementById("p-category")
+                    .value
+                    .trim(),
 
-                price:
-                    parseFloat(
-                        document.getElementById(
-                            "p-price"
-                        ).value
-                    ),
+            price:
+                parseFloat(
+                    document
+                        .getElementById("p-price")
+                        .value
+                ),
 
-                quantity:
-                    parseInt(
-                        document.getElementById(
-                            "p-quantity"
-                        ).value,
+            quantity:
+                parseInt(
+                    document
+                        .getElementById("p-quantity")
+                        .value,
+                    10
+                ),
+
+            supplier_id:
+                document
+                    .getElementById("p-supplier")
+                    .value
+                    ? parseInt(
+                        document
+                            .getElementById("p-supplier")
+                            .value,
                         10
-                    ),
-
-                supplier_id:
-                    document.getElementById(
-                        "p-supplier"
-                    ).value
-                        ? parseInt(
-                            document.getElementById(
-                                "p-supplier"
-                            ).value,
-                            10
-                        )
-                        : null
-
-            };
+                    )
+                    : null
+        };
 
 
-            if (
-                !payload.name ||
-                Number.isNaN(
-                    payload.price
-                ) ||
-                Number.isNaN(
-                    payload.quantity
-                ) ||
-                payload.price < 0 ||
-                payload.quantity < 0
-            ) {
+        if (
+            !payload.name ||
+            Number.isNaN(payload.price) ||
+            Number.isNaN(payload.quantity) ||
+            payload.price < 0 ||
+            payload.quantity < 0
+        ) {
 
-                showToast(
-                    "Please enter valid product details.",
-                    "error"
-                );
+            showToast(
+                "Please enter valid product details.",
+                "error"
+            );
 
-                return;
-            }
-
-
-            try {
-
-                if (id) {
-
-                    await apiRequest(
-                        `/products/${id}`,
-                        "PUT",
-                        payload
-                    );
-
-                    showToast(
-                        "Product updated successfully."
-                    );
-
-                } else {
-
-                    await apiRequest(
-                        "/products",
-                        "POST",
-                        payload
-                    );
-
-                    showToast(
-                        "Product added successfully."
-                    );
-
-                }
-
-
-                resetProductForm();
-
-
-                await Promise.all([
-
-                    loadProducts(
-                        currentProductPage,
-                        currentProductSearch
-                    ),
-
-                    loadAllProductsForSaleDropdown(),
-
-                    loadSummary()
-
-                ]);
-
-            } catch (error) {
-
-                showToast(
-                    getErrorMessage(error),
-                    "error"
-                );
-
-            }
-
+            return;
         }
-    );
+
+
+        try {
+
+            if (id) {
+
+                await apiRequest(
+                    `/products/${id}`,
+                    "PUT",
+                    payload
+                );
+
+                showToast(
+                    "Product updated successfully."
+                );
+
+            } else {
+
+                await apiRequest(
+                    "/products",
+                    "POST",
+                    payload
+                );
+
+                showToast(
+                    "Product added successfully."
+                );
+            }
+
+
+            resetProductForm();
+
+
+            await Promise.all([
+
+                loadProducts(
+                    currentProductPage,
+                    currentProductSearch
+                ),
+
+                loadAllProductsForSaleDropdown(),
+
+                loadSummary()
+            ]);
+
+        } catch (error) {
+
+            showToast(
+                getErrorMessage(error),
+                "error"
+            );
+        }
+    });
 
 
 // Edit product
@@ -1535,80 +1358,51 @@ function editProduct(id) {
     const product =
         productsCache.find(
             p =>
-                Number(
-                    p.product_id
-                ) === Number(id)
+                Number(p.product_id) ===
+                Number(id)
         );
 
 
-    if (!product) return;
+    if (!product) {
+        return;
+    }
 
 
-    document.getElementById(
-        "product-id"
-    ).value =
+    document.getElementById("product-id").value =
         product.product_id;
 
-
-    document.getElementById(
-        "p-name"
-    ).value =
+    document.getElementById("p-name").value =
         product.name || "";
 
-
-    document.getElementById(
-        "p-category"
-    ).value =
+    document.getElementById("p-category").value =
         product.category || "";
 
-
-    document.getElementById(
-        "p-price"
-    ).value =
+    document.getElementById("p-price").value =
         product.price;
 
-
-    document.getElementById(
-        "p-quantity"
-    ).value =
+    document.getElementById("p-quantity").value =
         product.quantity;
 
-
-    document.getElementById(
-        "p-supplier"
-    ).value =
+    document.getElementById("p-supplier").value =
         product.supplier_id || "";
 
 
-    document.getElementById(
-        "product-form-title"
-    ).textContent =
+    document.getElementById("product-form-title").textContent =
         "Edit Product";
 
-
-    document.getElementById(
-        "product-submit-text"
-    ).textContent =
+    document.getElementById("product-submit-text").textContent =
         "Update Product";
 
-
-    document.getElementById(
-        "product-submit-icon"
-    ).textContent =
+    document.getElementById("product-submit-icon").textContent =
         "✓";
 
-
-    document.getElementById(
-        "product-cancel-btn"
-    ).classList.remove(
-        "hidden"
-    );
-
-
     document
-        .getElementById("p-name")
-        .focus();
+        .getElementById("product-cancel-btn")
+        .classList
+        .remove("hidden");
 
+
+    document.getElementById("p-name").focus();
 }
 
 
@@ -1619,42 +1413,26 @@ function resetProductForm() {
         .getElementById("product-form")
         .reset();
 
+    document.getElementById("product-id").value = "";
 
-    document.getElementById(
-        "product-id"
-    ).value = "";
-
-
-    document.getElementById(
-        "product-form-title"
-    ).textContent =
+    document.getElementById("product-form-title").textContent =
         "Add Product";
 
-
-    document.getElementById(
-        "product-submit-text"
-    ).textContent =
+    document.getElementById("product-submit-text").textContent =
         "Add Product";
 
-
-    document.getElementById(
-        "product-submit-icon"
-    ).textContent =
+    document.getElementById("product-submit-icon").textContent =
         "＋";
 
-
-    document.getElementById(
-        "product-cancel-btn"
-    ).classList.add(
-        "hidden"
-    );
+    document
+        .getElementById("product-cancel-btn")
+        .classList
+        .add("hidden");
 }
 
 
 document
-    .getElementById(
-        "product-cancel-btn"
-    )
+    .getElementById("product-cancel-btn")
     .addEventListener(
         "click",
         resetProductForm
@@ -1664,11 +1442,7 @@ document
 // Delete product
 async function deleteProduct(id) {
 
-    if (
-        !confirm(
-            "Delete this product?"
-        )
-    ) {
+    if (!confirm("Delete this product?")) {
         return;
     }
 
@@ -1695,7 +1469,6 @@ async function deleteProduct(id) {
             loadAllProductsForSaleDropdown(),
 
             loadSummary()
-
         ]);
 
     } catch (error) {
@@ -1704,54 +1477,40 @@ async function deleteProduct(id) {
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
 
 // Product table events
 document
-    .querySelector(
-        "#products-table tbody"
-    )
-    .addEventListener(
-        "click",
-        event => {
+    .querySelector("#products-table tbody")
+    .addEventListener("click", event => {
 
-            const button =
-                event.target.closest(
-                    "button[data-action]"
-                );
+        const button =
+            event.target.closest(
+                "button[data-action]"
+            );
 
-            if (!button) return;
-
-
-            const id =
-                Number(
-                    button.dataset.id
-                );
-
-            const action =
-                button.dataset.action;
-
-
-            if (
-                action ===
-                "edit-product"
-            ) {
-                editProduct(id);
-            }
-
-
-            if (
-                action ===
-                "delete-product"
-            ) {
-                deleteProduct(id);
-            }
-
+        if (!button) {
+            return;
         }
-    );
+
+
+        const id =
+            Number(button.dataset.id);
+
+        const action =
+            button.dataset.action;
+
+
+        if (action === "edit-product") {
+            editProduct(id);
+        }
+
+        if (action === "delete-product") {
+            deleteProduct(id);
+        }
+    });
 
 
 // ============================================================
@@ -1761,9 +1520,7 @@ document
 function renderSaleProductOptions() {
 
     const select =
-        document.getElementById(
-            "sale-product"
-        );
+        document.getElementById("sale-product");
 
 
     const availableProducts =
@@ -1796,21 +1553,14 @@ function renderSaleProductOptions() {
         ${availableProducts
             .map(product => `
 
-                <option
-                    value="${product.product_id}"
-                >
-                    ${escapeHTML(
-                        product.name
-                    )}
-                    — ${formatCurrency(
-                        product.price
-                    )}
+                <option value="${product.product_id}">
+                    ${escapeHTML(product.name)}
+                    — ${formatCurrency(product.price)}
                     · Stock ${product.quantity}
                 </option>
 
             `)
-            .join("")
-        }
+            .join("")}
 
     `;
 }
@@ -1822,133 +1572,116 @@ function renderSaleProductOptions() {
 
 document
     .getElementById("add-item-btn")
-    .addEventListener(
-        "click",
-        () => {
+    .addEventListener("click", () => {
 
-            const productId =
-                parseInt(
-                    document.getElementById(
-                        "sale-product"
-                    ).value,
-                    10
-                );
-
-
-            const quantity =
-                parseInt(
-                    document.getElementById(
-                        "sale-qty"
-                    ).value,
-                    10
-                );
-
-
-            const product =
-                allProductsCache.find(
-                    p =>
-                        Number(
-                            p.product_id
-                        ) === productId
-                );
-
-
-            if (!product) {
-
-                showToast(
-                    "Please select a product.",
-                    "error"
-                );
-
-                return;
-            }
-
-
-            if (
-                !quantity ||
-                quantity < 1
-            ) {
-
-                showToast(
-                    "Quantity must be at least 1.",
-                    "error"
-                );
-
-                return;
-            }
-
-
-            const existing =
-                currentSaleItems.find(
-                    item =>
-                        item.product_id ===
-                        productId
-                );
-
-
-            const totalQuantity =
-                existing
-                    ? existing.quantity +
-                      quantity
-                    : quantity;
-
-
-            if (
-                totalQuantity >
-                Number(product.quantity)
-            ) {
-
-                showToast(
-                    `Only ${product.quantity} units available.`,
-                    "error"
-                );
-
-                return;
-            }
-
-
-            if (existing) {
-
-                existing.quantity =
-                    totalQuantity;
-
-            } else {
-
-                currentSaleItems.push({
-
-                    product_id:
-                        productId,
-
-                    quantity:
-                        quantity,
-
-                    name:
-                        product.name,
-
-                    price:
-                        Number(
-                            product.price
-                        )
-
-                });
-
-            }
-
-
-            document.getElementById(
-                "sale-qty"
-            ).value = 1;
-
-
-            renderSaleItems();
-
-
-            showToast(
-                "Item added to sale."
+        const productId =
+            parseInt(
+                document
+                    .getElementById("sale-product")
+                    .value,
+                10
             );
 
+
+        const quantity =
+            parseInt(
+                document
+                    .getElementById("sale-qty")
+                    .value,
+                10
+            );
+
+
+        const product =
+            allProductsCache.find(
+                p =>
+                    Number(p.product_id) ===
+                    productId
+            );
+
+
+        if (!product) {
+
+            showToast(
+                "Please select a product.",
+                "error"
+            );
+
+            return;
         }
-    );
+
+
+        if (!quantity || quantity < 1) {
+
+            showToast(
+                "Quantity must be at least 1.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const existing =
+            currentSaleItems.find(
+                item =>
+                    item.product_id ===
+                    productId
+            );
+
+
+        const totalQuantity =
+            existing
+                ? existing.quantity + quantity
+                : quantity;
+
+
+        if (
+            totalQuantity >
+            Number(product.quantity)
+        ) {
+
+            showToast(
+                `Only ${product.quantity} units available.`,
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (existing) {
+
+            existing.quantity =
+                totalQuantity;
+
+        } else {
+
+            currentSaleItems.push({
+
+                product_id:
+                    productId,
+
+                quantity:
+                    quantity,
+
+                name:
+                    product.name,
+
+                price:
+                    Number(product.price)
+            });
+        }
+
+
+        document.getElementById("sale-qty").value = 1;
+
+        renderSaleItems();
+
+        showToast(
+            "Item added to sale."
+        );
+    });
 
 
 // ============================================================
@@ -1981,9 +1714,7 @@ function renderSaleItems() {
         }`;
 
 
-    if (
-        currentSaleItems.length === 0
-    ) {
+    if (!currentSaleItems.length) {
 
         list.innerHTML = `
 
@@ -2000,8 +1731,7 @@ function renderSaleItems() {
 
         `;
 
-        totalElement.textContent =
-            "₹0.00";
+        totalElement.textContent = "₹0.00";
 
         return;
     }
@@ -2009,62 +1739,53 @@ function renderSaleItems() {
 
     list.innerHTML =
         currentSaleItems
-            .map(
-                (item, index) => {
+            .map((item, index) => {
 
-                    const subtotal =
-                        item.price *
-                        item.quantity;
-
-
-                    return `
-
-                        <li class="sale-item">
-
-                            <div class="sale-item-info">
-
-                                <strong>
-                                    ${escapeHTML(
-                                        item.name
-                                    )}
-                                </strong>
-
-                                <span>
-                                    ${formatCurrency(
-                                        item.price
-                                    )}
-                                    ×
-                                    ${item.quantity}
-                                </span>
-
-                            </div>
+                const subtotal =
+                    item.price *
+                    item.quantity;
 
 
-                            <div class="sale-item-right">
+                return `
 
-                                <strong class="sale-item-price">
-                                    ${formatCurrency(
-                                        subtotal
-                                    )}
-                                </strong>
+                    <li class="sale-item">
 
-                                <button
-                                    type="button"
-                                    class="remove-item"
-                                    onclick="removeSaleItem(${index})"
-                                    title="Remove item"
-                                >
-                                    ×
-                                </button>
+                        <div class="sale-item-info">
 
-                            </div>
+                            <strong>
+                                ${escapeHTML(item.name)}
+                            </strong>
 
-                        </li>
+                            <span>
+                                ${formatCurrency(item.price)}
+                                ×
+                                ${item.quantity}
+                            </span>
 
-                    `;
+                        </div>
 
-                }
-            )
+
+                        <div class="sale-item-right">
+
+                            <strong class="sale-item-price">
+                                ${formatCurrency(subtotal)}
+                            </strong>
+
+                            <button
+                                type="button"
+                                class="remove-item"
+                                onclick="removeSaleItem(${index})"
+                                title="Remove item"
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+                    </li>
+
+                `;
+            })
             .join("");
 
 
@@ -2100,85 +1821,72 @@ function removeSaleItem(index) {
 // ============================================================
 
 document
-    .getElementById(
-        "submit-sale-btn"
-    )
-    .addEventListener(
-        "click",
-        async () => {
+    .getElementById("submit-sale-btn")
+    .addEventListener("click", async () => {
 
-            if (
-                currentSaleItems.length ===
-                0
-            ) {
+        if (!currentSaleItems.length) {
 
-                showToast(
-                    "Add at least one item before completing the sale.",
-                    "error"
-                );
+            showToast(
+                "Add at least one item before completing the sale.",
+                "error"
+            );
 
-                return;
-            }
-
-
-            try {
-
-                await apiRequest(
-                    "/sales",
-                    "POST",
-                    {
-                        items:
-                            currentSaleItems.map(
-                                item => ({
-
-                                    product_id:
-                                        item.product_id,
-
-                                    quantity:
-                                        item.quantity
-
-                                })
-                            )
-                    }
-                );
-
-
-                currentSaleItems = [];
-
-                renderSaleItems();
-
-
-                showToast(
-                    "Sale completed successfully."
-                );
-
-
-                await Promise.all([
-
-                    loadProducts(
-                        currentProductPage,
-                        currentProductSearch
-                    ),
-
-                    loadAllProductsForSaleDropdown(),
-
-                    loadSales(),
-
-                    loadSummary()
-
-                ]);
-
-            } catch (error) {
-
-                showToast(
-                    getErrorMessage(error),
-                    "error"
-                );
-
-            }
-
+            return;
         }
-    );
+
+
+        try {
+
+            await apiRequest(
+                "/sales",
+                "POST",
+                {
+                    items:
+                        currentSaleItems.map(
+                            item => ({
+                                product_id:
+                                    item.product_id,
+
+                                quantity:
+                                    item.quantity
+                            })
+                        )
+                }
+            );
+
+
+            currentSaleItems = [];
+
+            renderSaleItems();
+
+
+            showToast(
+                "Sale completed successfully."
+            );
+
+
+            await Promise.all([
+
+                loadProducts(
+                    currentProductPage,
+                    currentProductSearch
+                ),
+
+                loadAllProductsForSaleDropdown(),
+
+                loadSales(),
+
+                loadSummary()
+            ]);
+
+        } catch (error) {
+
+            showToast(
+                getErrorMessage(error),
+                "error"
+            );
+        }
+    });
 
 
 // ============================================================
@@ -2190,9 +1898,7 @@ async function loadSales() {
     try {
 
         salesCache =
-            await apiRequest(
-                "/sales"
-            );
+            await apiRequest("/sales");
 
         renderSales();
 
@@ -2202,7 +1908,6 @@ async function loadSales() {
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
@@ -2227,166 +1932,139 @@ function renderSales() {
 
 
     const filtered =
-        salesCache.filter(
-            sale => {
+        salesCache.filter(sale => {
 
-                const saleId =
-                    String(
-                        sale.sale_id
-                    );
+            const saleId =
+                String(
+                    sale.sale_id
+                );
 
-
-                const date =
-                    new Date(
-                        sale.date
-                    )
+            const date =
+                new Date(
+                    sale.date
+                )
                     .toLocaleString()
                     .toLowerCase();
 
 
-                return (
-                    saleId.includes(search) ||
-                    date.includes(search)
-                );
-
-            }
-        );
+            return (
+                saleId.includes(search) ||
+                date.includes(search)
+            );
+        });
 
 
     if (!filtered.length) {
 
         tbody.innerHTML = "";
 
-        emptyState.classList.remove(
-            "hidden"
-        );
+        emptyState.classList.remove("hidden");
 
         return;
     }
 
 
-    emptyState.classList.add(
-        "hidden"
-    );
+    emptyState.classList.add("hidden");
 
 
     tbody.innerHTML =
-        filtered.map(sale => `
+        filtered
+            .map(sale => `
 
-            <tr>
+                <tr>
 
-                <td>
-                    <strong>
-                        #${sale.sale_id}
-                    </strong>
-                </td>
+                    <td>
+                        <strong>
+                            #${sale.sale_id}
+                        </strong>
+                    </td>
 
+                    <td>
+                        ${new Date(
+                            sale.date
+                        ).toLocaleString()}
+                    </td>
 
-                <td>
-                    ${new Date(
-                        sale.date
-                    ).toLocaleString()}
-                </td>
+                    <td>
+                        <strong>
+                            ${formatCurrency(
+                                sale.total_amount
+                            )}
+                        </strong>
+                    </td>
 
+                    <td>
 
-                <td>
-                    <strong>
-                        ${formatCurrency(
-                            sale.total_amount
-                        )}
-                    </strong>
-                </td>
+                        <div
+                            style="
+                                display:flex;
+                                flex-wrap:wrap;
+                                gap:5px;
+                            "
+                        >
 
+                            ${(sale.items || [])
+                                .map(item => `
 
-                <td>
+                                    <span
+                                        style="
+                                            display:inline-flex;
+                                            align-items:center;
+                                            background:var(--surface-soft);
+                                            border:1px solid var(--border);
+                                            border-radius:20px;
+                                            padding:5px 8px;
+                                            font-size:9px;
+                                            color:var(--text-soft);
+                                        "
+                                    >
+                                        #${item.product_id}
+                                        ×
+                                        ${item.quantity}
+                                    </span>
 
-                    <div
-                        style="
-                            display:flex;
-                            flex-wrap:wrap;
-                            gap:5px;
-                        "
-                    >
+                                `)
+                                .join("")}
 
-                        ${(
-                            sale.items || []
-                        )
-                        .map(item => `
+                        </div>
 
-                            <span
-                                style="
-                                    display:inline-flex;
-                                    align-items:center;
-                                    background:var(--surface-soft);
-                                    border:1px solid var(--border);
-                                    border-radius:20px;
-                                    padding:5px 8px;
-                                    font-size:9px;
-                                    color:var(--text-soft);
-                                "
-                            >
-                                #${item.product_id}
-                                ×
-                                ${item.quantity}
-                            </span>
+                    </td>
 
-                        `)
-                        .join("")}
+                </tr>
 
-                    </div>
-
-                </td>
-
-            </tr>
-
-        `).join("");
+            `)
+            .join("");
 }
 
 
 // Sales search
 document
-    .getElementById(
-        "sales-search-btn"
-    )
-    .addEventListener(
-        "click",
-        () => {
+    .getElementById("sales-search-btn")
+    .addEventListener("click", () => {
 
-            currentSalesSearch =
-                document.getElementById(
-                    "sales-search"
-                ).value;
+        currentSalesSearch =
+            document
+                .getElementById("sales-search")
+                .value;
 
-            renderSales();
-
-        }
-    );
+        renderSales();
+    });
 
 
 document
-    .getElementById(
-        "sales-search"
-    )
-    .addEventListener(
-        "keydown",
-        event => {
+    .getElementById("sales-search")
+    .addEventListener("keydown", event => {
 
-            if (
-                event.key ===
-                "Enter"
-            ) {
+        if (event.key === "Enter") {
 
-                event.preventDefault();
+            event.preventDefault();
 
-                currentSalesSearch =
-                    event.target.value;
+            currentSalesSearch =
+                event.target.value;
 
-                renderSales();
-
-            }
-
+            renderSales();
         }
-    );
+    });
 
 
 // ============================================================
@@ -2419,9 +2097,7 @@ async function downloadCSV(
             const errorData =
                 await response
                     .json()
-                    .catch(
-                        () => ({})
-                    );
+                    .catch(() => ({}));
 
             throw new Error(
                 errorData.error ||
@@ -2441,9 +2117,7 @@ async function downloadCSV(
 
 
         const link =
-            document.createElement(
-                "a"
-            );
+            document.createElement("a");
 
         link.href = url;
         link.download = filename;
@@ -2454,9 +2128,7 @@ async function downloadCSV(
 
         link.remove();
 
-        window.URL.revokeObjectURL(
-            url
-        );
+        window.URL.revokeObjectURL(url);
 
 
         showToast(
@@ -2469,43 +2141,30 @@ async function downloadCSV(
             getErrorMessage(error),
             "error"
         );
-
     }
 }
 
 
 document
-    .getElementById(
-        "export-products-btn"
-    )
-    .addEventListener(
-        "click",
-        () => {
+    .getElementById("export-products-btn")
+    .addEventListener("click", () => {
 
-            downloadCSV(
-                "/dashboard/export/products",
-                "products_report.csv"
-            );
-
-        }
-    );
+        downloadCSV(
+            "/dashboard/export/products",
+            "products_report.csv"
+        );
+    });
 
 
 document
-    .getElementById(
-        "export-sales-btn"
-    )
-    .addEventListener(
-        "click",
-        () => {
+    .getElementById("export-sales-btn")
+    .addEventListener("click", () => {
 
-            downloadCSV(
-                "/dashboard/export/sales",
-                "sales_report.csv"
-            );
-
-        }
-    );
+        downloadCSV(
+            "/dashboard/export/sales",
+            "sales_report.csv"
+        );
+    });
 
 
 // ============================================================
@@ -2542,8 +2201,6 @@ document
             getErrorMessage(error),
             "error"
         );
-
     }
 
 })();
-
