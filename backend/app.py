@@ -22,8 +22,9 @@ def create_app():
         resources={
             r"/api/*": {
                 "origins": [
-                    "https://inventorymgtsys.netlify.app"
-                ]
+    "https://inventorymgtsys.netlify.app",
+    "https://localhost"
+]
             }
         },
         methods=[
