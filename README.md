@@ -85,46 +85,13 @@ The system implements authentication, role-based access, CRUD operations, automa
 
 ---
 
-# 🏗️ System Architecture
+## 🏗️ System Architecture
 
-```text
-                         ┌─────────────────────────┐
-                         │       Web Browser       │
-                         │   HTML / CSS / JavaScript│
-                         └────────────┬────────────┘
-                                      │
-                                      │ HTTPS / REST API
-                                      │
-                         ┌────────────▼────────────┐
-                         │      Flask Backend      │
-                         │       REST API          │
-                         │                         │
-                         │ • Authentication        │
-                         │ • Products               │
-                         │ • Suppliers              │
-                         │ • Sales                  │
-                         │ • Dashboard              │
-                         └────────────┬────────────┘
-                                      │
-                                      │ SQLAlchemy
-                                      │
-                         ┌────────────▼────────────┐
-                         │      MySQL Database     │
-                         │                         │
-                         │ Users • Products        │
-                         │ Suppliers • Sales       │
-                         │ Sale Items              │
-                         └─────────────────────────┘
-                                      ▲
-                                      │
-                               Same REST API
-                                      │
-                         ┌────────────┴────────────┐
-                         │     Android Mobile     │
-                         │   Capacitor WebView    │
-                         └────────────────────────┘
-```
-
+<p align="center">
+  <img src="docs/system-architecture.png"
+       alt="System Architecture"
+       width="100%">
+</p>
 ### Client-agnostic backend
 
 A key architectural principle of the project is that the backend is independent of the client interface.
