@@ -88,10 +88,11 @@ The system implements authentication, role-based access, CRUD operations, automa
 ## 🏗️ System Architecture
 
 <p align="center">
-  <img src="docs/inventory_system_architecture.drawio.png"
+  <img src="inventory_system_architecture.drawio.png"
        alt="System Architecture"
        width="100%">
 </p>
+
 ### Client-agnostic backend
 
 A key architectural principle of the project is that the backend is independent of the client interface.
