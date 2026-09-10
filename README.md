@@ -88,7 +88,7 @@ The system implements authentication, role-based access, CRUD operations, automa
 ## 🏗️ System Architecture
 
 <p align="center">
-  <img src="docs/system-architecture.png"
+  <img src="docs/inventory_system_architecture.png"
        alt="System Architecture"
        width="100%">
 </p>
@@ -140,23 +140,13 @@ inventory-mobile-app/
 
 The mobile application is implemented using **Capacitor** and wraps the existing web interface into an installable Android application.
 
-### Mobile Architecture
+## 📱 Mobile App Architecture
 
-```text
-Android Application
-        │
-        ▼
-Capacitor WebView
-        │
-        ▼
-Existing HTML / CSS / JavaScript UI
-        │
-        ▼
-Flask REST API
-        │
-        ▼
-MySQL Database
-```
+<p align="center">
+  <img src="inventory_mobile_app_architecture.png"
+       alt="Mobile App Architecture"
+       width="100%">
+</p>
 
 The mobile application does **not** maintain a separate backend or database. It uses the same API and business data as the web application.
 
