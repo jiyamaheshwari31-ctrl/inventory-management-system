@@ -88,7 +88,7 @@ The system implements authentication, role-based access, CRUD operations, automa
 ## 🏗️ System Architecture
 
 <p align="center">
-  <img src="docs/inventory_system_architecture.png"
+  <img src="docs/inventory_system_architecture.drawio.png"
        alt="System Architecture"
        width="100%">
 </p>
@@ -143,7 +143,7 @@ The mobile application is implemented using **Capacitor** and wraps the existing
 ## 📱 Mobile App Architecture
 
 <p align="center">
-  <img src="inventory_mobile_app_architecture.png"
+  <img src="inventory_mobile_app_architecture.drawio.png"
        alt="Mobile App Architecture"
        width="100%">
 </p>
