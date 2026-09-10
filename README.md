@@ -1,223 +1,640 @@
-# Cloud-Based Small Business Inventory & Sales Management System
+# Cloud-Based Inventory & Sales Management System
 
-A full-stack app: **HTML/CSS/JS frontend → Flask REST API backend → MySQL cloud database**,
-with JWT authentication, role-based users (admin/staff), full CRUD, sales transactions that
-auto-deduct stock, and a low-stock alert dashboard.
+<p align="center">
+  <strong>A full-stack inventory and sales management platform for small businesses</strong>
+</p>
 
-Tested end-to-end locally before you got this: login, supplier CRUD, product CRUD, sale
-creation with stock deduction, and dashboard summary all work.
+<p align="center">
+  Web Application • Android Mobile Application • REST API • Cloud Database
+</p>
 
-Link https://inventorymgtsys.netlify.app/
+<p align="center">
+  <a href="https://inventorymgtsys.netlify.app/">Live Web Application</a>
+  •
+  <a href="https://github.com/jiyamaheshwari31-ctrl/inventory-management-system">GitHub Repository</a>
+</p>
+
 ---
 
-## 1. Project structure
+## 📌 Overview
 
+The **Cloud-Based Inventory & Sales Management System** is a full-stack software solution designed to help small businesses manage products, suppliers, inventory, sales, and business insights from a centralized platform.
+
+The system provides both:
+
+* 🌐 **Web Application** — browser-based interface for inventory and sales management
+* 📱 **Android Mobile Application** — installable mobile version built using Capacitor
+
+Both applications communicate with the **same Flask REST API** and **cloud-hosted MySQL database**, ensuring a centralized and consistent source of business data.
+
+The system implements authentication, role-based access, CRUD operations, automated stock deduction during sales, dashboard analytics, and low-stock monitoring.
+
+---
+
+## ✨ Key Features
+
+### 🔐 Authentication & Authorization
+
+* User registration and login
+* JWT-based authentication
+* Secure password hashing
+* Role-based access for **Admin** and **Staff**
+* Protected API endpoints
+
+### 📦 Product Management
+
+* Add new products
+* View inventory
+* Update product details
+* Delete products
+* Track product quantity and pricing
+* Associate products with suppliers
+
+### 🚚 Supplier Management
+
+* Add and manage suppliers
+* View supplier information
+* Update supplier details
+* Delete suppliers
+* Associate suppliers with products
+
+### 💰 Sales Management
+
+* Record sales transactions
+* Support multiple products in a sale
+* Automatically deduct sold quantities from inventory
+* Maintain sales history
+* Prevent invalid stock deductions
+
+### 📊 Dashboard & Analytics
+
+* Total inventory overview
+* Sales summary
+* Inventory statistics
+* Low-stock alerts
+* Top-selling products
+* Quick business insights
+
+### 📱 Mobile Application
+
+* Android application built using **Capacitor**
+* Reuses the existing web application interface
+* Connects to the same REST API as the web application
+* Installable as an APK
+* Runs as a standalone Android application
+
+---
+
+# 🏗️ System Architecture
+
+```text
+                         ┌─────────────────────────┐
+                         │       Web Browser       │
+                         │   HTML / CSS / JavaScript│
+                         └────────────┬────────────┘
+                                      │
+                                      │ HTTPS / REST API
+                                      │
+                         ┌────────────▼────────────┐
+                         │      Flask Backend      │
+                         │       REST API          │
+                         │                         │
+                         │ • Authentication        │
+                         │ • Products               │
+                         │ • Suppliers              │
+                         │ • Sales                  │
+                         │ • Dashboard              │
+                         └────────────┬────────────┘
+                                      │
+                                      │ SQLAlchemy
+                                      │
+                         ┌────────────▼────────────┐
+                         │      MySQL Database     │
+                         │                         │
+                         │ Users • Products        │
+                         │ Suppliers • Sales       │
+                         │ Sale Items              │
+                         └─────────────────────────┘
+                                      ▲
+                                      │
+                               Same REST API
+                                      │
+                         ┌────────────┴────────────┐
+                         │     Android Mobile     │
+                         │   Capacitor WebView    │
+                         └────────────────────────┘
 ```
+
+### Client-agnostic backend
+
+A key architectural principle of the project is that the backend is independent of the client interface.
+
+The same REST API serves:
+
+**Web Application → Flask REST API → MySQL**
+
+and
+
+**Android Application → Flask REST API → MySQL**
+
+This avoids maintaining separate backend logic for web and mobile clients.
+
+---
+
+# 🌐 Web Application
+
+The web application provides the primary management interface for business users.
+
+### Main Modules
+
+| Module            | Functionality                                  |
+| ----------------- | ---------------------------------------------- |
+| 🔐 Authentication | Login and user authentication                  |
+| 📦 Products       | Product CRUD and inventory management          |
+| 🚚 Suppliers      | Supplier CRUD and supplier-product association |
+| 💰 Sales          | Create and view sales transactions             |
+| 📊 Dashboard      | Inventory and sales insights                   |
+| ⚠️ Low Stock      | Identify products requiring restocking         |
+
+### Live Application
+
+**Web Application:**
+https://inventorymgtsys.netlify.app/
+
+---
+
+# 📱 Android Mobile Application
+
+The project also includes an Android application under:
+
+```text
+inventory-mobile-app/
+```
+
+The mobile application is implemented using **Capacitor** and wraps the existing web interface into an installable Android application.
+
+### Mobile Architecture
+
+```text
+Android Application
+        │
+        ▼
+Capacitor WebView
+        │
+        ▼
+Existing HTML / CSS / JavaScript UI
+        │
+        ▼
+Flask REST API
+        │
+        ▼
+MySQL Database
+```
+
+The mobile application does **not** maintain a separate backend or database. It uses the same API and business data as the web application.
+
+This approach reduces duplication while allowing the same inventory system to be accessed from different client platforms.
+
+### Mobile Project Structure
+
+```text
+inventory-mobile-app/
+├── android/               # Native Android project
+├── www/                   # Web application packaged for mobile
+│   ├── index.html
+│   ├── dashboard.html
+│   ├── css/
+│   └── js/
+├── capacitor.config.ts
+├── package.json
+└── README.md
+```
+
+### Building the Android Application
+
+Prerequisites:
+
+* Node.js 18+
+* Android Studio
+* Android SDK
+* Java / JDK
+
+Install dependencies:
+
+```bash
+cd inventory-mobile-app
+npm install
+```
+
+Synchronize the web files with Android:
+
+```bash
+npx cap sync android
+```
+
+Open the project in Android Studio:
+
+```bash
+npx cap open android
+```
+
+The application can then be executed on an Android emulator or a physical Android device.
+
+To generate a debug APK:
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+The generated APK will be available at:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+---
+
+# 🛠️ Technology Stack
+
+## Frontend
+
+* HTML5
+* CSS3
+* JavaScript
+* Responsive UI
+
+## Backend
+
+* Python
+* Flask
+* Flask-CORS
+* Flask-JWT-Extended
+* SQLAlchemy
+* PyMySQL
+
+## Database
+
+* MySQL
+
+## Mobile
+
+* Capacitor
+* Android
+* Android Studio
+* Gradle
+
+## Deployment
+
+* **Netlify** — Web frontend
+* **Render** — Flask backend
+* **Cloud MySQL** — Database
+
+---
+
+# 📁 Project Structure
+
+```text
 inventory-management-system/
+│
 ├── backend/
-│   ├── app.py              # Flask app factory, registers all routes
-│   ├── config.py           # reads DATABASE_URL / JWT secret from env
-│   ├── models.py           # SQLAlchemy models (users, products, suppliers, sales, sale_items)
-│   ├── init_db.py          # creates tables + seeds an admin user
+│   ├── app.py
+│   ├── config.py
+│   ├── models.py
+│   ├── init_db.py
 │   ├── requirements.txt
 │   ├── .env.example
+│   │
 │   └── routes/
-│       ├── auth.py         # /api/auth/register, /api/auth/login
-│       ├── products.py     # /api/products (full CRUD)
-│       ├── suppliers.py    # /api/suppliers (full CRUD)
-│       ├── sales.py        # /api/sales (create + list, deducts stock)
-│       └── dashboard.py    # /api/dashboard/summary, /top-products
+│       ├── auth.py
+│       ├── products.py
+│       ├── suppliers.py
+│       ├── sales.py
+│       └── dashboard.py
+│
 ├── frontend/
-│   ├── index.html          # login page
-│   ├── dashboard.html      # products / suppliers / sales UI
-│   ├── css/style.css
-│   └── js/{api.js, login.js, dashboard.js}
+│   ├── index.html
+│   ├── dashboard.html
+│   │
+│   ├── css/
+│   │   └── style.css
+│   │
+│   └── js/
+│       ├── api.js
+│       ├── login.js
+│       └── dashboard.js
+│
 ├── database/
-│   └── schema.sql          # documented schema for your submission
+│   └── schema.sql
+│
+├── inventory-mobile-app/
+│   ├── android/
+│   ├── www/
+│   ├── capacitor.config.ts
+│   ├── package.json
+│   └── README.md
+│
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 2. Run it locally (do this first)
+# 🔌 REST API
 
-### Backend
+The backend exposes RESTful endpoints under the `/api` prefix.
+
+## Authentication
+
+| Method | Endpoint             | Authentication | Purpose                     |
+| ------ | -------------------- | -------------- | --------------------------- |
+| POST   | `/api/auth/register` | ❌              | Register a user             |
+| POST   | `/api/auth/login`    | ❌              | Authenticate and obtain JWT |
+
+## Products
+
+| Method | Endpoint            | Purpose            |
+| ------ | ------------------- | ------------------ |
+| GET    | `/api/products`     | Retrieve products  |
+| POST   | `/api/products`     | Create a product   |
+| GET    | `/api/products/:id` | Retrieve a product |
+| PUT    | `/api/products/:id` | Update a product   |
+| DELETE | `/api/products/:id` | Delete a product   |
+
+## Suppliers
+
+| Method | Endpoint             | Purpose             |
+| ------ | -------------------- | ------------------- |
+| GET    | `/api/suppliers`     | Retrieve suppliers  |
+| POST   | `/api/suppliers`     | Create a supplier   |
+| GET    | `/api/suppliers/:id` | Retrieve a supplier |
+| PUT    | `/api/suppliers/:id` | Update a supplier   |
+| DELETE | `/api/suppliers/:id` | Delete a supplier   |
+
+## Sales
+
+| Method | Endpoint         | Purpose         |
+| ------ | ---------------- | --------------- |
+| GET    | `/api/sales`     | Retrieve sales  |
+| POST   | `/api/sales`     | Create a sale   |
+| GET    | `/api/sales/:id` | Retrieve a sale |
+| DELETE | `/api/sales/:id` | Delete a sale   |
+
+## Dashboard
+
+| Method | Endpoint                      | Purpose              |
+| ------ | ----------------------------- | -------------------- |
+| GET    | `/api/dashboard/summary`      | Dashboard statistics |
+| GET    | `/api/dashboard/top-products` | Top-selling products |
+
+Authenticated endpoints use:
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+# 🔒 Security
+
+The application incorporates several security mechanisms:
+
+* JWT-based authentication
+* Password hashing
+* Protected API endpoints
+* Role-based authorization
+* Environment variables for sensitive configuration
+* CORS configuration
+* Separation of frontend and backend
+* Database credentials excluded from source control
+
+> **Important:** Never commit `.env` files, database credentials, API secrets, or JWT secrets to the repository.
+
+---
+
+# 🚀 Running the Project Locally
+
+## 1. Clone the repository
 
 ```bash
-cd inventory-management-system/backend
+git clone https://github.com/jiyamaheshwari31-ctrl/inventory-management-system.git
+cd inventory-management-system
+```
+
+---
+
+## 2. Set up the backend
+
+```bash
+cd backend
+```
+
+Create a virtual environment:
+
+### Windows
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+### macOS / Linux
+
+```bash
 python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
-
-# uses local SQLite by default — no setup needed to just try it
-python init_db.py               # creates tables + admin user
-python app.py                   # runs on http://localhost:8080
 ```
 
-Default login seeded by `init_db.py`:
+Configure the required environment variables using `.env.example`.
+
+Then run:
+
+```bash
+python app.py
 ```
-email: admin@shop.com
-password: Admin@123
+
+The backend will run on:
+
+```text
+http://localhost:8080
+```
+
+---
+
+## 3. Run the frontend
+
+Open a second terminal:
+
+```bash
+cd frontend
+python -m http.server 3000
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Make sure `frontend/js/api.js` points to the correct backend:
+
+```javascript
+const API_BASE = "http://localhost:8080/api";
+```
+
+For production, replace it with the deployed backend URL.
+
+---
+
+# ☁️ Deployment
+
+The project follows a cloud-based three-tier deployment model.
+
+```text
+                 Internet
+                    │
+          ┌─────────┴─────────┐
+          │                   │
+       Netlify              Render
+          │                   │
+     Web Frontend        Flask REST API
+                              │
+                              │
+                         Cloud MySQL
 ```
 
 ### Frontend
 
-In a new terminal (no build step needed, it's plain HTML/JS):
+Hosted using:
 
-```bash
-cd inventory-management-system/frontend
-python3 -m http.server 3000
+**Netlify**
+
+### Backend
+
+Hosted using:
+
+**Render**
+
+### Database
+
+Hosted using:
+
+**Cloud MySQL**
+
+This architecture keeps the presentation layer, application layer, and data layer logically separated and independently deployable.
+
+---
+
+# 🧪 Core Workflow
+
+A typical sales workflow is:
+
+```text
+User Login
+    ↓
+JWT Authentication
+    ↓
+Dashboard
+    ↓
+Select Product
+    ↓
+Create Sale
+    ↓
+Validate Stock
+    ↓
+Record Sale
+    ↓
+Automatically Deduct Inventory
+    ↓
+Update Dashboard
+    ↓
+Trigger Low-Stock Visibility
 ```
 
-Open **http://localhost:3000** in your browser and log in.
-
-> `frontend/js/api.js` has `API_BASE = "http://localhost:8080/api"` — change this
-> to your deployed backend URL later.
-
-### Quick API test with curl (optional, confirms backend works standalone)
-
-```bash
-# Login and grab a token
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@shop.com","password":"Admin@123"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
-
-# Create a supplier
-curl -X POST http://localhost:8080/api/suppliers \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -d '{"name":"Acme Supplies","phone":"9999999999","email":"acme@example.com"}'
-
-# Create a product
-curl -X POST http://localhost:8080/api/products \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -d '{"name":"Wireless Mouse","category":"Electronics","price":599,"quantity":20,"supplier_id":1}'
-
-# List products
-curl http://localhost:8080/api/products -H "Authorization: Bearer $TOKEN"
-
-# Record a sale (auto-deducts stock)
-curl -X POST http://localhost:8080/api/sales \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" \
-  -d '{"items":[{"product_id":1,"quantity":3}]}'
-
-# Dashboard summary + low-stock alerts
-curl http://localhost:8080/api/dashboard/summary -H "Authorization: Bearer $TOKEN"
-```
-
-You can also import these into **Postman**: create a collection, add a "Bearer Token" auth
-header at the collection level, and hit each endpoint below.
+This ensures that sales and inventory quantities remain synchronized.
 
 ---
 
-## 3. REST API reference
+# 🎯 Project Objectives
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/auth/register` | no | create a user |
-| POST | `/api/auth/login` | no | get JWT token |
-| GET/POST | `/api/products` | yes | list / create products |
-| GET/PUT/DELETE | `/api/products/:id` | yes | read / update / delete a product |
-| GET/POST | `/api/suppliers` | yes | list / create suppliers |
-| GET/PUT/DELETE | `/api/suppliers/:id` | yes | read / update / delete a supplier |
-| GET/POST | `/api/sales` | yes | list sales / record a new sale |
-| GET/DELETE | `/api/sales/:id` | yes | read / delete a sale |
-| GET | `/api/dashboard/summary` | yes | totals + low-stock list |
-| GET | `/api/dashboard/top-products` | yes | best sellers |
+The project was developed with the following objectives:
 
-All authenticated routes require header: `Authorization: Bearer <token>`.
+1. Digitize inventory management for small businesses.
+2. Reduce manual inventory tracking.
+3. Centralize product, supplier, and sales information.
+4. Automatically maintain stock levels after sales.
+5. Provide actionable inventory and sales insights.
+6. Provide secure authenticated access.
+7. Make the system accessible through both web and mobile clients.
+8. Demonstrate cloud-based full-stack application architecture.
 
 ---
 
-## 4. Put the database on the cloud (do this before deploying the backend)
+# 🔮 Future Enhancements
 
-This app uses **MySQL** via PyMySQL. Pick one of these — both give you a ready-made
-connection string, so you never hand-type host/port/credentials:
+Potential future improvements include:
 
-**Option A — Railway (MySQL, easiest, free trial credit)**
-1. Go to https://railway.app → New Project → **Provision MySQL**.
-2. Click the MySQL service → **Connect** tab → copy the **"MySQL Connection URL"**
-   shown there (it already starts with `mysql://...`).
-3. Paste it as-is into `DATABASE_URL`, just change `mysql://` to `mysql+pymysql://`
-   at the front. Everything else (host, port, password) stays exactly as copied —
-   don't retype any of it by hand, that's the #1 source of connection failures.
-   
-mysql+pymysql://user:password@host:port/dbname
-```
-
-**Test the connection string before doing anything else:**
-```bash
-cd backend
-python3 -c "
-import pymysql
-url = 'PASTE_YOUR_HOST_HERE'   # just the host part, e.g. containers-us-west-1.railway.app
-pymysql.connect(host=url, user='USER', password='PASSWORD', database='DBNAME', port=PORT)
-print('Connected successfully')
-"
-```
-If that prints "Connected successfully," your `DATABASE_URL` is good and
-`python init_db.py` (below) will work.
+* 📈 Advanced sales forecasting
+* 🤖 AI-based demand prediction
+* 📦 Automated purchase/reorder recommendations
+* 🔔 Push notifications for low-stock products
+* 📊 Advanced business analytics
+* 🧾 Invoice generation and PDF export
+* 📱 Native mobile features
+* 🔄 Offline-first mobile functionality
+* 👥 More granular role and permission management
+* 📤 Data export to CSV/Excel
+* 🔍 Advanced inventory search and filtering
 
 ---
 
-## 5. Push to GitHub
+# 💡 Key Technical Highlights
 
-```bash
-cd inventory-management-system
-git init
-git add .
-git commit -m "Initial commit: full-stack inventory & sales management system"
-git branch -M main
-git remote add origin https://github.com/<your-username>/inventory-management-system.git
-git push -u origin main
-```
+This project demonstrates practical implementation of:
 
-(`.gitignore` already excludes `venv/`, `.env`, and the local SQLite file.)
-
----
-
-## 6. Deploy the backend (Render, free tier)
-
-1. render.com → New → Web Service → connect your GitHub repo.
-2. Settings:
-   - **Root directory:** `backend`
-   - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `gunicorn app:app`
-3. Environment variables (Render dashboard → Environment):
-   ```
-   DATABASE_URL = <your MySQL URL from step 4>
-   JWT_SECRET_KEY = <any long random string>
-   ```
-4. Deploy. You'll get a URL like `https://inventory-backend.onrender.com`.
-5. Run the DB init once, from your local machine, pointed at the cloud DB:
-   ```bash
-   cd backend
-   export DATABASE_URL="mysql+pymysql://user:password@host:port/dbname"   # Windows: set DATABASE_URL=...
-   python init_db.py
-   ```
+* Full-stack web development
+* RESTful API design
+* Client-server architecture
+* CRUD operations
+* Relational database design
+* SQLAlchemy ORM
+* JWT authentication
+* Password hashing
+* Role-based access control
+* Cloud deployment
+* Cross-origin API communication
+* Mobile application packaging
+* Reusable API architecture
+* Separation of concerns
 
 ---
 
-## 7. Deploy the frontend (Netlify, free tier)
+# 📚 Learning Outcomes
 
-1. Edit `frontend/js/api.js`:
-   ```js
-   const API_BASE = "https://inventory-backend.onrender.com/api";
-   ```
-2. Commit and push that change.
-3. netlify.com → Add new site → Import from GitHub → pick this repo.
-   - **Base directory:** `frontend`
-   - **Publish directory:** `frontend`
-4. Deploy. You'll get a URL like `https://your-app.netlify.app`.
+Through this project, the development workflow covers:
+
+**Frontend → Backend → Database → Authentication → REST APIs → Cloud Deployment → Mobile Integration**
+
+The project demonstrates how a single backend service can support multiple client applications while maintaining centralized business logic and data.
 
 ---
 
-## 8. Notes on the "cloud computing concepts" this demonstrates
+# 👩‍💻 Project Repository
 
-- **Cloud hosting** — frontend on Netlify, backend on Render, both reachable over the internet.
-- **Cloud database** — MySQL hosted on Railway/Aiven, not on your laptop.
-- **Client-server architecture** — browser → REST API → database, cleanly separated.
-- **REST API** — every action is an HTTP verb + JSON, documented above.
-- **Security** — password hashing (werkzeug), JWT-based auth, environment variables for
-  secrets (never hardcoded), CORS configured explicitly.
-- **Separation of concerns** — frontend, backend, and database are three independently
-  deployable components.
+**GitHub:**
+https://github.com/jiyamaheshwari31-ctrl/inventory-management-system
+
+**Live Web Application:**
+https://inventorymgtsys.netlify.app/
+
+---
+
+## ⭐ Acknowledgement
+
+This project was developed as a full-stack software engineering project to demonstrate the design, development, deployment, and integration of a cloud-based business management application.
