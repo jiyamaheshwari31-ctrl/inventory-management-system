@@ -1,0 +1,48 @@
+name: inventory-scale
+
+x-backend: &backend
+  build: ./backend
+  env_file: ./backend/.env          # DATABASE_URL (Railway MySQL) + JWT_SECRET_KEY
+  expose:
+    - "8080"
+  healthcheck:
+    test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/api/health').status == 200 else 1)"]
+    interval: 10s
+    timeout: 3s
+    retries: 3
+    start_period: 10s
+
+services:
+  backend1:
+    <<: *backend
+    container_name: inventory-backend-1
+    environment:
+      INSTANCE_NAME: backend1
+    ports: ["5001:8080"]            # direct access, handy for debugging only
+
+  backend2:
+    <<: *backend
+    container_name: inventory-backend-2
+    environment:
+      INSTANCE_NAME: backend2
+    ports: ["5002:8080"]
+
+  backend3:
+    <<: *backend
+    container_name: inventory-backend-3
+    environment:
+      INSTANCE_NAME: backend3
+    ports: ["5003:8080"]
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: inventory-nginx-lb
+    ports:
+      - "8000:80"                   # http://localhost:8000 -> Nginx -> backend1/2/3
+    volumes:
+      # Pick the config with NGINX_CONF (default lb.conf), see docs/ASSIGNMENT2.md
+      - ./nginx/${NGINX_CONF:-lb.conf}:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend1: { condition: service_healthy }
+      backend2: { condition: service_healthy }
+      backend3: { condition: service_healthy }

@@ -1,0 +1,73 @@
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
+from models import db, Product
+from rbac import require_role
+
+products_bp = Blueprint("products", __name__)
+
+
+@products_bp.route("", methods=["POST"])
+@require_role("admin")
+def create_product():
+    data = request.get_json() or {}
+    if not data.get("name") or data.get("price") is None:
+        return jsonify({"error": "name and price are required"}), 400
+    product = Product(
+        name=data["name"], category=data.get("category"), price=data["price"],
+        quantity=data.get("quantity", 0), low_stock_threshold=data.get("low_stock_threshold", 5),
+        supplier_id=data.get("supplier_id"),
+    )
+    db.session.add(product)
+    db.session.commit()
+    return jsonify(product.to_dict()), 201
+
+
+@products_bp.route("", methods=["GET"])
+@jwt_required()
+def get_products():
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 20, type=int)
+    search = request.args.get("search", "", type=str).strip()
+    category = request.args.get("category", "", type=str).strip()
+
+    query = Product.query
+    if search:
+        query = query.filter(Product.name.ilike(f"%{search}%"))
+    if category:
+        query = query.filter(Product.category == category)
+
+    total = query.count()
+    products = query.order_by(Product.product_id).offset((page - 1) * limit).limit(limit).all()
+
+    return jsonify({
+        "items": [p.to_dict() for p in products],
+        "total": total, "page": page, "limit": limit,
+        "pages": max((total + limit - 1) // limit, 1),
+    }), 200
+
+
+@products_bp.route("/<int:product_id>", methods=["GET"])
+@jwt_required()
+def get_product(product_id):
+    return jsonify(Product.query.get_or_404(product_id).to_dict()), 200
+
+
+@products_bp.route("/<int:product_id>", methods=["PUT"])
+@require_role("admin")
+def update_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    data = request.get_json() or {}
+    for field in ["name", "category", "price", "quantity", "low_stock_threshold", "supplier_id"]:
+        if field in data:
+            setattr(product, field, data[field])
+    db.session.commit()
+    return jsonify(product.to_dict()), 200
+
+
+@products_bp.route("/<int:product_id>", methods=["DELETE"])
+@require_role("admin")
+def delete_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    db.session.delete(product)
+    db.session.commit()
+    return jsonify({"message": "Product deleted"}), 200
