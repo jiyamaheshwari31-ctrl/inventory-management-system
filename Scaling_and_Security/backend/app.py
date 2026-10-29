@@ -45,9 +45,6 @@ def create_app():
     def health():
         return jsonify({"status": "ok", "served_by": os.environ.get("INSTANCE_NAME", "local")}), 200
 
-    with app.app_context():
-        db.create_all()
-
     return app
 
 

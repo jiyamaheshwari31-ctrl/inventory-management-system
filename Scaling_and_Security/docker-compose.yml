@@ -2,7 +2,9 @@ name: inventory-scale
 
 x-backend: &backend
   build: ./backend
-  env_file: ./backend/.env          # DATABASE_URL (Railway MySQL) + JWT_SECRET_KEY
+  env_file: ./.env.scaling          # DATABASE_URL (Railway MySQL) + JWT_SECRET_KEY
+  volumes:
+    - ./certs/ca.pem:/run/secrets/ca.pem:ro
   expose:
     - "8080"
   healthcheck:

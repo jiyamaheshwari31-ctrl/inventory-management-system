@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+import bcrypt
+from werkzeug.security import check_password_hash
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -13,14 +14,32 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="staff")  # admin | staff
 
+    
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = bcrypt.hashpw(
+            password.encode("utf-8"),
+            bcrypt.gensalt()
+        ).decode("utf-8")
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        stored_hash = self.password_hash
 
-    def to_dict(self):
-        return {"user_id": self.user_id, "name": self.name, "email": self.email, "role": self.role}
+        # New bcrypt passwords
+        if stored_hash.startswith("$2"):
+            return bcrypt.checkpw(
+                password.encode("utf-8"),
+                stored_hash.encode("utf-8")
+            )
+
+        # Support existing Werkzeug hashes and upgrade them after login
+        try:
+            if check_password_hash(stored_hash, password):
+                self.set_password(password)
+                return True
+        except (ValueError, TypeError):
+            pass
+
+        return False
 
 
 class Supplier(db.Model):
