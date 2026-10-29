@@ -17,7 +17,13 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        if not self.password_hash or ":" not in self.password_hash:
+            return False
+
+        try:
+            return check_password_hash(self.password_hash, password)
+        except (ValueError, TypeError):
+            return False
 
     def to_dict(self):
         return {"user_id": self.user_id, "name": self.name, "email": self.email, "role": self.role}
