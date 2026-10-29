@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-
+import bcrypt
 db = SQLAlchemy()
 
 
@@ -14,13 +14,22 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False, default="staff")  # admin | staff
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = bcrypt.hashpw(
+            password.encode("utf-8"),
+            bcrypt.gensalt()
+        ).decode("utf-8")
 
     def check_password(self, password):
-        if not self.password_hash or ":" not in self.password_hash:
+        if not self.password_hash:
             return False
 
         try:
+            if self.password_hash.startswith("$2"):
+                return bcrypt.checkpw(
+                    password.encode("utf-8"),
+                    self.password_hash.encode("utf-8")
+                )
+
             return check_password_hash(self.password_hash, password)
         except (ValueError, TypeError):
             return False
