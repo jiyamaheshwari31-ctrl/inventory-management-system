@@ -1,8 +1,3 @@
-
-// =========================================================
-// LOGIN - ADMIN / STAFF + MFA SUPPORT
-// =========================================================
-
 const loginForm = document.getElementById("login-form");
 
 loginForm.addEventListener("submit", async (event) => {
@@ -20,6 +15,7 @@ loginForm.addEventListener("submit", async (event) => {
     spinner.classList.remove("hidden");
 
     try {
+        // Step 1: Verify email and password.
         const data = await apiRequest(
             "/auth/login",
             "POST",
@@ -27,67 +23,84 @@ loginForm.addEventListener("submit", async (event) => {
             false
         );
 
-        // -------------------------------------------------
-        // ADMIN MFA REQUIRED
-        // -------------------------------------------------
+        let loginData = data;
+
+        // Step 2: If MFA is required, verify the authenticator code.
         if (data.mfa_required === true) {
             if (!data.mfa_token) {
-                throw new Error(
-                    "Login verification could not start. Please try again."
-                );
+                throw new Error("The server did not return an MFA challenge token.");
             }
 
-            // Do not save the temporary MFA token as a login token.
+            // Do not retain stale credentials from an earlier session.
             localStorage.removeItem("token");
             localStorage.removeItem("user");
+            localStorage.removeItem("access_token");
 
-            localStorage.setItem("mfa_token", data.mfa_token);
-
-            errorElement.textContent =
-                "Additional verification is required. OTP verification must be completed before accessing the dashboard.";
-
-            return;
-        }
-
-        // -------------------------------------------------
-        // NORMAL LOGIN
-        // -------------------------------------------------
-        if (
-            typeof data.access_token !== "string" ||
-            !data.access_token.trim() ||
-            data.access_token === "undefined"
-        ) {
-            throw new Error(
-                "Login failed: the server did not return a valid access token."
+            const otp = window.prompt(
+                "Enter the 6-digit code from your authenticator app:"
             );
-        }
 
-        if (
-            !data.user ||
-            typeof data.user !== "object" ||
-            !data.user.role
-        ) {
-            throw new Error(
-                "Login failed: user information was missing from the server response."
+            if (otp === null) {
+                throw new Error("MFA verification cancelled. Please sign in again.");
+            }
+
+            const totpCode = otp.trim();
+
+            if (!/^\d{6}$/.test(totpCode)) {
+                throw new Error("Enter a valid 6-digit authenticator code.");
+            }
+
+            buttonText.textContent = "Verifying OTP...";
+
+            const response = await fetch(
+                `${API_BASE}/auth/mfa/verify-login`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${data.mfa_token}`
+                    },
+                    body: JSON.stringify({
+                        totp_code: totpCode
+                    })
+                }
             );
+
+            loginData = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(
+                    loginData.error ||
+                    loginData.message ||
+                    "MFA verification failed."
+                );
+            }
         }
 
-        // Save only validated login information.
-        localStorage.setItem("token", data.access_token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // Step 3: Save credentials only after successful authentication.
+        if (
+            typeof loginData.access_token !== "string" ||
+            !loginData.access_token.trim() ||
+            loginData.access_token === "undefined" ||
+            !loginData.user ||
+            typeof loginData.user !== "object" ||
+            !loginData.user.role
+        ) {
+            throw new Error("Login response is missing valid user or token information.");
+        }
 
-        // Clear any previous MFA challenge.
+        localStorage.setItem("token", loginData.access_token);
+        localStorage.setItem("user", JSON.stringify(loginData.user));
         localStorage.removeItem("mfa_token");
+        localStorage.removeItem("access_token");
 
-        // Navigate only after successful login.
+        // Step 4: Open the dashboard only after authentication succeeds.
         window.location.href = "dashboard.html";
 
     } catch (error) {
         console.error("Login error:", error);
+        errorElement.textContent = error.message || "Login failed. Please try again.";
 
-        // Never display whether a particular email exists.
-        errorElement.textContent =
-            "Invalid email or password.";
     } finally {
         buttonText.textContent = "Sign in";
         spinner.classList.add("hidden");
