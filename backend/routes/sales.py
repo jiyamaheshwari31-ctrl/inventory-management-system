@@ -92,11 +92,10 @@ def create_sale():
 
 
 @sales_bp.route("", methods=["GET"])
-@roles_required("admin")
+@roles_required("admin", "staff")
 def get_sales():
     sales = Sale.query.order_by(Sale.date.desc()).all()
     return jsonify([s.to_dict() for s in sales]), 200
-
 
 @sales_bp.route("/<int:sale_id>", methods=["GET"])
 @roles_required("admin")
