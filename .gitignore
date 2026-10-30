@@ -22,3 +22,9 @@ instance/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local security configuration and database archives
+Scaling_and_Security/.env.scaling
+Scaling_and_Security/before.tar
+Scaling_and_Security/after.tar
+Scaling_and_Security/certs/ca.pem

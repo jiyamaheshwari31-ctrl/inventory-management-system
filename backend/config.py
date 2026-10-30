@@ -23,9 +23,10 @@ class Config:
     # NOTE: Most managed MySQL hosts give you the full connection string
     # (already including any SSL params it needs) when you create the DB —
     # just paste that whole string in as DATABASE_URL, don't retype it by hand.
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    SQLALCHEMY_DATABASE_URI = fix_database_url(os.environ.get(
         "DATABASE_URL", "sqlite:///local_dev.db"
-    ).replace("mysql://", "mysql+pymysql://", 1)
+    ))
+    # .replace("mysql://", "mysql+pymysql://", 1)
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "change-this-secret-in-prod")
